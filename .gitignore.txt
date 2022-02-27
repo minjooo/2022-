@@ -1,0 +1,15 @@
+<<<<<<< HEAD
+.vs
+*.exe
+*.ilk
+*.pdb
+*.obj
+*.ipdb
+*.iobj
+*.log
+*.pch
+*.idb
+*.tlog
+*.lastbuildstate
+*.suo
+*.db
