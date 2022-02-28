@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 .vs
 *.exe
 *.ilk
