@@ -24,6 +24,21 @@ UxVoid User::Initialize()
 
 }
 
+UxVoid User::SetAddr( const IN_ADDR& addr, const USHORT& port )
+{
+	UxInt8 c[INET_ADDRSTRLEN];
+	inet_ntop( AF_INET, &addr, c, INET_ADDRSTRLEN );
+	UxString str( c );
+	str += " : ";
+	str += std::to_string( port );
+	m_addr = str;
+}
+
+UxString User::GetAddr()
+{
+	return m_addr;
+}
+
 UxInt32 User::GetId() const
 {
 	return m_id;

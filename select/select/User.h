@@ -15,6 +15,9 @@ public:
 	UxVoid		Initialize();
 
 public:
+	UxVoid		SetAddr( const IN_ADDR& addr, const USHORT& port );
+	UxString	GetAddr();
+
 	UxInt32		GetId() const;
 
 	UxVoid		SetName( UxString name );
@@ -33,6 +36,8 @@ public:
 	UxInt32		GetRoomNum();
 
 protected:
+	UxString	m_addr;
+
 	UxInt32		m_id;
 	UxString	m_name;
 	UxBool		m_isAccess;

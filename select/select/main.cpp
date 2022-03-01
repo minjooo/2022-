@@ -2,10 +2,13 @@
 
 #include "pch.h"
 #include "User.h"
+#include "Room.h"
 
 std::map<UxInt32, User>		g_users_all;
 std::map<UxString, UxInt32>	g_users_access;
 std::map<UxInt32, SOCKET>	g_sockets;
+
+std::vector<Room>			g_rooms;
 
 UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 {
@@ -14,7 +17,7 @@ UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 
 UxVoid SendBasicMention( UxInt32 id )
 {
-	std::string str =
+	UxString str =
 		"명령어안내(H) 종료(X)\r\n"
 		"선택>  ";
 	const UxInt8* c = str.c_str();
@@ -23,7 +26,7 @@ UxVoid SendBasicMention( UxInt32 id )
 
 UxVoid SendLoginMention( UxInt32 id )
 {
-	std::string str =
+	UxString str =
 		"** 안녕하세요 텍스트 채팅서버 ver 0.00001입니다\r\n"
 		"** 로그인 명령어(LOGIN)을 사용해주세요\r\n";
 	const UxInt8* c = str.c_str();
@@ -32,7 +35,7 @@ UxVoid SendLoginMention( UxInt32 id )
 
 UxVoid SendWelcome( UxInt32 id )
 {
-	std::string str =
+	UxString str =
 		"------------------------------------------------------\r\n"
 		"반갑습니다. 텍스트 채팅서버 ver0.000001입니다.\r\n\r\n"
 		"이용중 불편하신 점이 있으면 아래 이메일로 문의 바랍니다\r\n"
@@ -44,7 +47,7 @@ UxVoid SendWelcome( UxInt32 id )
 
 UxVoid SendBye( UxInt32 id )
 {
-	std::string str =
+	UxString str =
 		"------------------------------------------------------\r\n"
 		"이용해주셔서 감사합니다.\r\n\r\n"
 		"오늘 하루 행복하시길 바랍니다. ^^\r\n"
@@ -55,7 +58,7 @@ UxVoid SendBye( UxInt32 id )
 
 UxVoid SendInstruction( UxInt32 id )
 {
-	std::string str =
+	UxString str =
 		"------------------------------------------------------\r\n"
 		"H				명령어 안내\r\n"
 		"US				이용자 목록 보기\r\n"
@@ -68,6 +71,12 @@ UxVoid SendInstruction( UxInt32 id )
 		"-------------------------------------------------------\r\n";
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
+}
+
+UxVoid SendAllUserList( UxInt32 id )
+{
+	UxString str = "";
+
 }
 
 UxVoid CommandHandler( UxInt32 id )
@@ -205,10 +214,11 @@ UxVoid main() {
 			WSAEVENT cEvt = WSACreateEvent();
 			WSAEventSelect( client, cEvt, FD_READ | FD_CLOSE );
 
-			std::cout << "welcome! " << counter << "\n";
 			g_sockets[counter] = client;
 			g_users_all[counter] = User( counter, client );
+			g_users_all[counter].SetAddr( address.sin_addr, address.sin_port );
 			events[counter] = cEvt;
+			std::cout << "new client " << counter << " access	" << g_users_all[counter].GetAddr() << "\n";
 			SendLoginMention( counter );
 			counter++;
 		}
@@ -221,6 +231,7 @@ UxVoid main() {
 			PacketHandler( idx, buffer );
 		}
 
+		//접속 종료 처리 미비
 		if ( networkEvents.lNetworkEvents & FD_CLOSE ) 
 		{
 			closesocket( g_sockets[idx] );
