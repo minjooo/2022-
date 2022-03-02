@@ -1,5 +1,6 @@
 
 
+#define _CRT_SECURE_NO_WARNINGS
 #pragma once
 
 
@@ -8,6 +9,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <time.h>
 #include <WS2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 

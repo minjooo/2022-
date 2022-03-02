@@ -22,10 +22,14 @@ public:
 
 	UxBool					IsRoomMax();
 
+	UxString				GetOpenTime();
+
 protected:
 	UxInt32					m_roomNum;
 	UxString				m_roomName;
 
 	std::vector<UxInt32>	m_users;
 	UxInt32					m_maximun;
+
+	time_t					m_openTime;
 };

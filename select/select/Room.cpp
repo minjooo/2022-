@@ -4,6 +4,8 @@
 
 Room::Room( UxInt32 num, UxString name, UxInt32 max )
 {
+	m_openTime = time( NULL );
+
 	m_roomNum = num;
 	m_roomName = name;
 	m_maximun = max;
@@ -49,4 +51,11 @@ std::vector<UxInt32> Room::GetUsers()
 UxBool Room::IsRoomMax()
 {
 	return m_users.size() == m_maximun;
+}
+
+UxString Room::GetOpenTime()
+{
+	struct tm* t = localtime( &m_openTime );
+	UxString str = std::to_string( t->tm_hour ) + ":" + std::to_string( t->tm_min ) + "." + std::to_string( t->tm_sec );
+	return str;
 }

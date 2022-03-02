@@ -182,7 +182,8 @@ UxVoid SendRoomInfo( UxInt32 id )
 
 	UxString str =
 		"------------------------- 대화방 정보 -------------------------\r\n"
-		"[" + std::to_string( num ) + "]	" + g_rooms[num].GetCurrentNum() + "	" + g_rooms[num].GetName() + "\r\n";
+		"[" + std::to_string( num ) + "]	" + g_rooms[num].GetCurrentNum() + "	" + g_rooms[num].GetName() + "\r\n"
+		"생성시간 : " + g_rooms[num].GetOpenTime() + "\r\n";
 
 	for ( auto&& userId : g_rooms[num].GetUsers() )
 	{
