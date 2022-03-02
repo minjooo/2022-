@@ -36,6 +36,7 @@ public:
 	UxVoid		LeaveRoom();
 	UxVoid		SetRoomNum( UxInt32 roomNum );
 	UxInt32		GetRoomNum();
+	UxString	GetRoomJoinTime();
 
 public:
 	UxBool		operator==( User& user );
@@ -52,4 +53,5 @@ protected:
 
 	UxBool		m_isInRoom;
 	UxInt32		m_roomNum;
+	time_t		m_roomJoinTime;
 };

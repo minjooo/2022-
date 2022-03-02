@@ -187,7 +187,7 @@ UxVoid SendRoomInfo( UxInt32 id )
 
 	for ( auto&& userId : g_rooms[num].GetUsers() )
 	{
-		str += ( "참여자 : " + g_users[userId].GetName() + "\r\n" );
+		str += ( "참여자 : " + g_users[userId].GetName() + "생성시간 : " + g_users[userId].GetRoomJoinTime() + "\r\n" );
 	}
 	str += "---------------------------------------------------------------\r\n";
 

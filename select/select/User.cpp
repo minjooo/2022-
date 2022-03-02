@@ -105,6 +105,7 @@ UxVoid User::SetRoomNum( UxInt32 roomNum )
 {
 	m_roomNum = roomNum;
 	m_isInRoom = true;
+	m_roomJoinTime = time( NULL );
 }
 
 UxInt32 User::GetRoomNum()
@@ -115,4 +116,11 @@ UxInt32 User::GetRoomNum()
 UxBool User::operator==( User& user )
 {
 	return user.GetName() == m_name;
+}
+
+UxString User::GetRoomJoinTime()
+{
+	struct tm* t = localtime( &m_roomJoinTime );
+	UxString str = std::to_string( t->tm_hour ) + ":" + std::to_string( t->tm_min ) + "." + std::to_string( t->tm_sec );
+	return str;
 }
