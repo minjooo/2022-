@@ -113,14 +113,14 @@ UxInt32 User::GetRoomNum()
 	return m_roomNum;
 }
 
-UxBool User::operator==( User& user )
-{
-	return user.GetName() == m_name;
-}
-
 UxString User::GetRoomJoinTime()
 {
 	struct tm* t = localtime( &m_roomJoinTime );
 	UxString str = std::to_string( t->tm_hour ) + ":" + std::to_string( t->tm_min ) + "." + std::to_string( t->tm_sec );
 	return str;
+}
+
+UxBool User::operator==( User& user )
+{
+	return user.GetName() == m_name;
 }

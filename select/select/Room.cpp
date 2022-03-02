@@ -53,9 +53,19 @@ UxBool Room::IsRoomMax()
 	return m_users.size() == m_maximun;
 }
 
+UxBool Room::IsRoomEmpty()
+{
+	return m_users.size() == 0;
+}
+
 UxString Room::GetOpenTime()
 {
 	struct tm* t = localtime( &m_openTime );
 	UxString str = std::to_string( t->tm_hour ) + ":" + std::to_string( t->tm_min ) + "." + std::to_string( t->tm_sec );
 	return str;
+}
+
+UxBool Room::operator==( Room& room )
+{
+	return room.GetRoomNum() == m_roomNum;
 }

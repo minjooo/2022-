@@ -21,8 +21,12 @@ public:
 	std::vector<UxInt32>	GetUsers();
 
 	UxBool					IsRoomMax();
+	UxBool					IsRoomEmpty();
 
 	UxString				GetOpenTime();
+
+public:
+	UxBool		operator==( Room& room );
 
 protected:
 	UxInt32					m_roomNum;

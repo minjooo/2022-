@@ -336,10 +336,15 @@ UxVoid CommandHandler( UxInt32 id )
 		//대화방 나가기
 		else if ( "/Q" == command )
 		{
+			UxInt32 roomNum = g_users[id].GetRoomNum();
 			BrodcastRoom( id, ERoomEvent::Leave );
-			g_rooms[g_users[id].GetRoomNum()].UserLeave( id );
+			g_rooms[roomNum].UserLeave( id );
 			g_users[id].LeaveRoom();
 			//방 없어질지 봐야됨
+			if ( g_rooms[roomNum].IsRoomEmpty() )
+			{
+				g_rooms.erase( roomNum );
+			}
 		}
 		//끝내기
 		else if ( "X" == command )
