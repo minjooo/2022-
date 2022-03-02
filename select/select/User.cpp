@@ -44,6 +44,11 @@ UxInt32 User::GetId() const
 	return m_id;
 }
 
+UxVoid User::SetId( UxInt32 id )
+{
+	m_id = id;
+}
+
 UxVoid User::SetName( UxString name )
 {
 	m_name = name;
@@ -62,6 +67,11 @@ UxBool User::IsAccess()
 UxVoid User::SetAccess()
 {
 	m_isAccess = true;
+}
+
+UxVoid User::SetAccessCancle()
+{
+	m_isAccess = false;
 }
 
 UxVoid User::AddCommand( UxString add )

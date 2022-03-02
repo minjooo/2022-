@@ -24,6 +24,7 @@ public:
 	UxBool					IsRoomEmpty();
 
 	UxString				GetOpenTime();
+	UxVoid					ChangeUserId( UxInt32 id, UxInt32 to );
 
 public:
 	UxBool		operator==( Room& room );

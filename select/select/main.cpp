@@ -5,9 +5,11 @@
 #include "Room.h"
 
 
-std::map<UxInt32, User>		g_users;
-std::map<UxInt32, SOCKET>	g_sockets;
+SOCKET g_sockets[WSA_MAXIMUM_WAIT_EVENTS];
+WSAEVENT g_events[WSA_MAXIMUM_WAIT_EVENTS];
+UxInt32 g_counter = 1;
 
+std::map<UxInt32, User>		g_users;
 std::map<UxInt32, Room>		g_rooms;
 UxInt32						g_roomCounter { 0 };
 
@@ -204,10 +206,17 @@ UxVoid SendUserProfile( UxInt32 id )
 		SendInvalid( id, EInvalidEvent::NotExistUser );
 		return;
 	}
-	//방에 있을 때 처리 추가 필요
-	UxString str =
-		"** " + user.GetName() + "님은 현재 대기실에 있습니다,\r\n"
-		"** 접속지 : " + user.GetAddr() + "\r\n";
+
+	UxString str = "";
+	if ( user.IsInRoom() )
+	{
+		str = "** " + user.GetName() + "님은 현재 " + std::to_string( user.GetRoomNum() ) + "번 대화방에 있습니다,\r\n";
+	}
+	else
+	{
+		str = "** " + user.GetName() + "님은 현재 대기실에 있습니다,\r\n";
+	}
+	str += "** 접속지 : " + user.GetAddr() + "\r\n";
 
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
@@ -273,7 +282,7 @@ UxVoid SendInvite( UxInt32 id )
 	}
 }
 
-UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e)
+UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e, UxInt32 roomNum)
 {
 	UxString str = "";
 
@@ -291,10 +300,46 @@ UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e)
 
 	const UxInt8* c = str.c_str();
 
-	for ( auto&& userId : g_rooms[g_users[id].GetRoomNum()].GetUsers() )
+	for ( auto&& userId : g_rooms[roomNum].GetUsers() )
 	{
 		SendPacket( userId, c );
 	}
+}
+
+UxVoid UserQuit( UxInt32 id )
+{
+	std::cout << g_users[id].GetAddr() << " leave" << std::endl;
+
+	closesocket( g_sockets[id] );
+	WSACloseEvent( g_events[id] );
+	g_sockets[id] = g_sockets[g_counter - 1];
+	g_events[id] = g_events[g_counter - 1];
+	g_users[id] = g_users[g_counter - 1];
+	g_users[id].SetId( id );
+	if ( g_users[id].IsInRoom() )
+	{
+		g_rooms[g_users[id].GetRoomNum()].ChangeUserId( g_counter - 1, id );
+	}
+	g_users.erase( g_counter - 1 );
+	--g_counter;
+}
+
+UxVoid CleanUp( UxInt32 id )
+{
+	if ( g_users[id].IsInRoom() )
+	{
+		UxInt32 roomNum = g_users[id].GetRoomNum();
+		g_rooms[roomNum].UserLeave( id );
+		BrodcastRoom( id, ERoomEvent::Leave , roomNum );
+
+		if ( g_rooms[roomNum].IsRoomEmpty() )
+		{
+			g_rooms.erase( roomNum );
+		}
+	}
+	SendBye( id );
+	g_users[id].SetAccessCancle();
+	UserQuit( id );
 }
 
 UxVoid CommandHandler( UxInt32 id )
@@ -350,18 +395,16 @@ UxVoid CommandHandler( UxInt32 id )
 			UxInt32 roomNum = SendOpenRoom( id );
 			g_rooms[roomNum].UserJoin( id );
 			g_users[id].SetRoomNum( roomNum );
-			BrodcastRoom( id, ERoomEvent::Join );
+			BrodcastRoom( id, ERoomEvent::Join , roomNum );
 		}
 		//대화방 참여하기
 		else if ( "J" == command )
 		{
 			UxInt32 roomNum = std::stoi( GetNextCommand( id ) );
-			//있는방인지 확인 필요
 			if ( 0 == g_rooms.count( roomNum ) )
 			{
 				SendInvalid( id, EInvalidEvent::NotExistRoom );
 			}
-			//참여 가능한지 확인 필요
 			else if ( g_rooms[roomNum].IsRoomMax() )
 			{
 				SendInvalid( id, EInvalidEvent::RoomFull );
@@ -370,7 +413,7 @@ UxVoid CommandHandler( UxInt32 id )
 			{
 				g_rooms[roomNum].UserJoin( id );
 				g_users[id].SetRoomNum( roomNum );
-				BrodcastRoom( id, ERoomEvent::Join );
+				BrodcastRoom( id, ERoomEvent::Join , roomNum );
 			}
 		}
 		//초대하기
@@ -382,8 +425,8 @@ UxVoid CommandHandler( UxInt32 id )
 		else if ( "/Q" == command )
 		{
 			UxInt32 roomNum = g_users[id].GetRoomNum();
-			BrodcastRoom( id, ERoomEvent::Leave );
 			g_rooms[roomNum].UserLeave( id );
+			BrodcastRoom( id, ERoomEvent::Leave , roomNum );
 			g_users[id].LeaveRoom();
 
 			if ( g_rooms[roomNum].IsRoomEmpty() )
@@ -394,7 +437,7 @@ UxVoid CommandHandler( UxInt32 id )
 		//끝내기
 		else if ( "X" == command )
 		{
-
+			CleanUp( id );
 		}
 
 		if ( !g_users[id].IsInRoom() )
@@ -468,23 +511,19 @@ UxVoid main() {
 	WSAEventSelect( listener, listenEvent, FD_ACCEPT );
 
 
-	//SOCKET sockets[WSA_MAXIMUM_WAIT_EVENTS];
-	WSAEVENT events[WSA_MAXIMUM_WAIT_EVENTS];
-	//sockets[0] = listener;
-	events[0] = listenEvent;
+	g_events[0] = listenEvent;
 	g_sockets[0] = listener;
-	UxInt32 counter = 1;
 
 
 	while ( true ) {
-		DWORD res = WSAWaitForMultipleEvents( counter, events, FALSE, WSA_INFINITE, TRUE );
+		DWORD res = WSAWaitForMultipleEvents( g_counter, g_events, FALSE, WSA_INFINITE, TRUE );
 		if ( res == WSA_WAIT_FAILED )
 			break;
 
 		UxInt32 idx = res - WSA_WAIT_EVENT_0;
 
 		WSANETWORKEVENTS networkEvents;
-		if ( WSAEnumNetworkEvents( g_sockets[idx], events[idx], &networkEvents ) == SOCKET_ERROR )
+		if ( WSAEnumNetworkEvents( g_sockets[idx], g_events[idx], &networkEvents ) == SOCKET_ERROR )
 		{
 			std::cout << "error" << std::endl;
 			break;
@@ -499,13 +538,14 @@ UxVoid main() {
 			WSAEVENT cEvt = WSACreateEvent();
 			WSAEventSelect( client, cEvt, FD_READ | FD_CLOSE );
 
-			g_sockets[counter] = client;
-			g_users[counter] = User( counter, client );
-			g_users[counter].SetAddr( address.sin_addr, address.sin_port );
-			events[counter] = cEvt;
-			std::cout << g_users[counter].GetAddr() << " access" << std::endl;
-			SendLoginMention( counter );
-			counter++;
+			g_sockets[g_counter] = client;
+			g_users[g_counter] = User( g_counter, client );
+			g_users[g_counter].SetAddr( address.sin_addr, address.sin_port );
+			g_events[g_counter] = cEvt;
+			std::cout << g_users[g_counter].GetAddr() << " access" << std::endl;
+			SendLoginMention( g_counter );
+			//g_users[g_counter].SetAccess();
+			g_counter++;
 		}
 
 		if ( networkEvents.lNetworkEvents & FD_READ ) 
@@ -516,15 +556,23 @@ UxVoid main() {
 			PacketHandler( idx, buffer );
 		}
 
-		//접속 종료 처리 미비
 		if ( networkEvents.lNetworkEvents & FD_CLOSE ) 
 		{
-			closesocket( g_sockets[idx] );
-			WSACloseEvent( events[idx] );
-			g_sockets.erase( idx );
-			//sockets[idx] = sockets[counter - 1];
-			events[idx] = events[counter - 1];
-			counter--;
+			if ( g_users[idx].IsAccess() )
+			{
+				if ( g_users[idx].IsInRoom() )
+				{
+					UxInt32 roomNum = g_users[idx].GetRoomNum();
+					g_rooms[roomNum].UserLeave( idx );
+					BrodcastRoom( idx, ERoomEvent::Leave, roomNum );
+
+					if ( g_rooms[roomNum].IsRoomEmpty() )
+					{
+						g_rooms.erase( roomNum );
+					}
+				}
+			}
+			UserQuit( idx );
 		}
 	}
 

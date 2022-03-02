@@ -65,6 +65,18 @@ UxString Room::GetOpenTime()
 	return str;
 }
 
+UxVoid Room::ChangeUserId( UxInt32 id, UxInt32 to )
+{
+	for ( UxInt32 i = 0; i < m_users.size(); ++i )
+	{
+		if ( m_users[i] == id )
+		{
+			m_users[i] = to;
+			return;
+		}
+	}
+}
+
 UxBool Room::operator==( Room& room )
 {
 	return room.GetRoomNum() == m_roomNum;

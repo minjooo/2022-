@@ -19,12 +19,14 @@ public:
 	UxString	GetAddr();
 
 	UxInt32		GetId() const;
+	UxVoid		SetId( UxInt32 id );
 
 	UxVoid		SetName( UxString name );
 	UxString	GetName();
 
 	UxBool		IsAccess();
 	UxVoid		SetAccess();
+	UxVoid		SetAccessCancle();
 
 	UxVoid		AddCommand( UxString add );
 	UxVoid		AddCommand( UxInt8* add );
