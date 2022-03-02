@@ -76,11 +76,11 @@ UxVoid SendLoginMention( UxInt32 id )
 UxVoid SendWelcome( UxInt32 id )
 {
 	UxString str =
-		"------------------------------------------------------\r\n"
+		"---------------------------------------------------------------\r\n"
 		"반갑습니다. 텍스트 채팅서버 ver0.000001입니다.\r\n\r\n"
 		"이용중 불편하신 점이 있으면 아래 이메일로 문의 바랍니다\r\n"
 		"감사합니다\r\n\r\n"
-		"-------------------------------------------------------\r\n";
+		"---------------------------------------------------------------\r\n";
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
 }
@@ -88,10 +88,10 @@ UxVoid SendWelcome( UxInt32 id )
 UxVoid SendBye( UxInt32 id )
 {
 	UxString str =
-		"------------------------------------------------------\r\n"
+		"---------------------------------------------------------------\r\n"
 		"이용해주셔서 감사합니다.\r\n\r\n"
 		"오늘 하루 행복하시길 바랍니다. ^^\r\n"
-		"-------------------------------------------------------\r\n";
+		"---------------------------------------------------------------\r\n";
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
 }
@@ -99,7 +99,7 @@ UxVoid SendBye( UxInt32 id )
 UxVoid SendInstruction( UxInt32 id )
 {
 	UxString str =
-		"------------------------------------------------------\r\n"
+		"---------------------------------------------------------------\r\n"
 		"H				명령어 안내\r\n"
 		"US				이용자 목록 보기\r\n"
 		"LT				대화방 목록 보기\r\n"
@@ -109,7 +109,7 @@ UxVoid SendInstruction( UxInt32 id )
 		"O	[최대인원] [방제목]	대화방 만들기\r\n"
 		"J	[방번호]		대화방 참여하기\r\n"
 		"U	[방번호]		끝내기\r\n"
-		"-------------------------------------------------------\r\n";
+		"---------------------------------------------------------------\r\n";
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
 }
@@ -151,6 +151,24 @@ UxVoid SendUserProfile( UxInt32 id )
 	UxString str =
 		"** " + user.GetName() + "님은 현재 대기실에 있습니다,\r\n"
 		"** 접속지 : " + user.GetAddr() + "\r\n";
+
+	const UxInt8* c = str.c_str();
+	SendPacket( id, c );
+}
+
+UxVoid SendRoomInfo( UxInt32 id )
+{
+	UxInt32 num = std::stoi( GetNextCommand( id ) );
+
+	UxString str =
+		"------------------------- 대화방 정보 -------------------------\r\n"
+		"[" + std::to_string( num ) + "]	" + g_rooms[num].GetCurrentNum() + "	" + g_rooms[num].GetName() + "\r\n";
+
+	for ( auto&& userId : g_rooms[num].GetUsers() )
+	{
+		str += ( "참여자 : " + g_users[userId].GetName() + "\r\n" );
+	}
+	str += "---------------------------------------------------------------\r\n";
 
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
@@ -213,7 +231,8 @@ UxVoid CommandHandler( UxInt32 id )
 		//대화방 정보 보기
 		else if ( "ST" == command )
 		{
-
+			//있는방인지 확인 필요
+			SendRoomInfo( id );
 		}
 		//이용자 정보 보기
 		else if ( "PF" == command )
@@ -247,6 +266,7 @@ UxVoid CommandHandler( UxInt32 id )
 		{
 			UxInt32 roomNum = std::stoi( GetNextCommand( id ) );
 			//있는방인지 확인 필요
+			//참여 가능한지 확인 필요
 			g_rooms[roomNum].UserJoin( id );
 			g_users[id].SetRoomNum( roomNum );
 			SendJoinRoom( id );
