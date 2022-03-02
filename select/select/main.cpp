@@ -12,6 +12,25 @@ std::vector<Room>			g_rooms;
 UxInt32						g_roomCounter { 0 };
 
 
+UxString GetNextCommand( UxInt32 id )
+{
+	g_users[id].EraseFirstCommand();
+	return g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
+}
+
+UxBool FindUserWithName( UxString name, User* user )
+{
+	for ( auto&& u : g_users )
+	{
+		if ( u.second.GetName() == name )
+		{
+			*user = u.second;
+			return true;
+		}
+	}
+	return false;
+}
+
 UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 {
 	send( g_sockets[id], buff, strlen(buff), 0 );
@@ -107,10 +126,22 @@ UxVoid SendRoomList( UxInt32 id )
 	SendPacket( id, c );
 }
 
-UxString GetNextCommand( UxInt32 id )
+UxVoid SendUserProfile( UxInt32 id )
 {
-	g_users[id].EraseFirstCommand();
-	return g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
+	UxString who = GetNextCommand( id );
+	User user;
+	if ( false == FindUserWithName( who, &user ) )
+	{
+		//없을 경우 처리 필요
+		return;
+	}
+
+	UxString str =
+		"** " + user.GetName() + "님은 현재 대기실에 있습니다,\r\n"
+		"** 접속지 : " + user.GetAddr() + "\r\n";
+
+	const UxInt8* c = str.c_str();
+	SendPacket( id, c );
 }
 
 UxVoid CommandHandler( UxInt32 id )
@@ -144,7 +175,7 @@ UxVoid CommandHandler( UxInt32 id )
 		//이용자 정보 보기
 		else if ( "PF" == command )
 		{
-
+			SendUserProfile( id );
 		}
 		//쪽지 보내기
 		else if ( "TO" == command )
