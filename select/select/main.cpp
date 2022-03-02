@@ -4,8 +4,8 @@
 #include "User.h"
 #include "Room.h"
 
-std::map<UxInt32, User>		g_users_all;
-std::map<UxString, UxInt32>	g_users_access;
+std::map<UxInt32, User>		g_users;
+//std::map<UxString, UxInt32>	g_users_access;
 std::map<UxInt32, SOCKET>	g_sockets;
 
 std::vector<Room>			g_rooms;
@@ -76,16 +76,22 @@ UxVoid SendInstruction( UxInt32 id )
 UxVoid SendAllUserList( UxInt32 id )
 {
 	UxString str = "";
+	for ( auto&& user : g_users )
+	{
+		str += ("[" + user.second.GetName() + "]		" + user.second.GetAddr() + "\r\n");
+	}
 
+	const UxInt8* c = str.c_str();
+	SendPacket( id, c );
 }
 
 UxVoid CommandHandler( UxInt32 id )
 {
-	UxString command = g_users_all[id].GetCommand().substr( 0, g_users_all[id].GetCommand().find( " " ) );
+	UxString command = g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
 	std::transform( command.cbegin(), command.cend(), command.begin(), std::toupper );
 
 	//after login
-	if ( g_users_all[id].IsAccess() )
+	if ( g_users[id].IsAccess() )
 	{
 		//명령어 안내
 		if ( "H" == command )
@@ -95,7 +101,7 @@ UxVoid CommandHandler( UxInt32 id )
 		//이용자 목록 보기
 		else if ( "US" == command )
 		{
-
+			SendAllUserList( id );
 		}
 		//대화방 목록 보기
 		else if ( "LT" == command )
@@ -135,13 +141,13 @@ UxVoid CommandHandler( UxInt32 id )
 		if ( "LOGIN" == command )
 		{
 			//겹치는 이름 처리 필요
-			UxString name = g_users_all[id].GetCommand().substr( g_users_all[id].GetCommand().find( " " ) + 1, g_users_all[id].GetCommand().length() - 1 );
-			g_users_all[id].SetName( name );
-			g_users_access.insert( std::make_pair( name, id ) );
+			UxString name = g_users[id].GetCommand().substr( g_users[id].GetCommand().find( " " ) + 1, g_users[id].GetCommand().length() - 1 );
+			g_users[id].SetName( name );
+			//g_users_access.insert( std::make_pair( name, id ) );
 			
 			SendWelcome( id );
 			SendBasicMention( id );
-			g_users_all[id].SetAccess();
+			g_users[id].SetAccess();
 		}
 		else
 		{
@@ -156,13 +162,13 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 	//enter
 	if ( '\r' == buff[0] )
 	{
-		std::cout << g_users_all[id].GetCommand() << std::endl;
+		std::cout << g_users[id].GetCommand() << std::endl;
 		CommandHandler( id );
-		g_users_all[id].ClearCommand();
+		g_users[id].ClearCommand();
 	}
 	else
 	{
-		g_users_all[id].AddCommand( buff );
+		g_users[id].AddCommand( buff );
 	}
 	//backspace처리 필요
 }
@@ -215,10 +221,10 @@ UxVoid main() {
 			WSAEventSelect( client, cEvt, FD_READ | FD_CLOSE );
 
 			g_sockets[counter] = client;
-			g_users_all[counter] = User( counter, client );
-			g_users_all[counter].SetAddr( address.sin_addr, address.sin_port );
+			g_users[counter] = User( counter, client );
+			g_users[counter].SetAddr( address.sin_addr, address.sin_port );
 			events[counter] = cEvt;
-			std::cout << "new client " << counter << " access	" << g_users_all[counter].GetAddr() << "\n";
+			std::cout << "new client " << counter << " access	" << g_users[counter].GetAddr() << "\n";
 			SendLoginMention( counter );
 			counter++;
 		}
