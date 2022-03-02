@@ -31,6 +31,18 @@ UxBool FindUserWithName( UxString name, User* user )
 	return false;
 }
 
+UxBool FindUserWithName( UxString name )
+{
+	for ( auto&& u : g_users )
+	{
+		if ( u.second.GetName() == name )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 {
 	send( g_sockets[id], buff, strlen(buff), 0 );
@@ -257,9 +269,27 @@ UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e)
 }
 
 //예외들
-UxVoid SendInvalid( UxInt32 id )
+UxVoid SendInvalid( UxInt32 id, EInvalidEvent e )
 {
+	UxString str = "";
 
+	switch ( e )
+	{
+	case EInvalidEvent::AlreadyExistName:
+		str += "이미 존재하는 아이디입니다.\r\n";
+		break;
+	case EInvalidEvent::NotExistUser:
+		str += "존재하지 않는 아이디입니다.\r\n";
+		break;
+	case EInvalidEvent::NotExistRoom:
+		str += "존재하지 않는 방입니다.\r\n";
+		break;
+	default:
+		break;
+	}
+
+	const UxInt8* c = str.c_str();
+	SendPacket( id, c );
 }
 
 UxVoid CommandHandler( UxInt32 id )
@@ -340,7 +370,7 @@ UxVoid CommandHandler( UxInt32 id )
 			BrodcastRoom( id, ERoomEvent::Leave );
 			g_rooms[roomNum].UserLeave( id );
 			g_users[id].LeaveRoom();
-			//방 없어질지 봐야됨
+
 			if ( g_rooms[roomNum].IsRoomEmpty() )
 			{
 				g_rooms.erase( roomNum );
@@ -362,11 +392,19 @@ UxVoid CommandHandler( UxInt32 id )
 		{
 			//겹치는 이름 처리 필요
 			UxString name = GetNextCommand( id );
-			g_users[id].SetName( name );
-			
-			SendWelcome( id );
-			SendBasicMention( id );
-			g_users[id].SetAccess();
+
+			if ( FindUserWithName( name ) )
+			{
+				SendInvalid( id, EInvalidEvent::AlreadyExistName );
+				SendLoginMention( id );
+			}
+			else
+			{
+				g_users[id].SetName( name );
+				SendWelcome( id );
+				SendBasicMention( id );
+				g_users[id].SetAccess();
+			}
 		}
 		else
 		{
@@ -385,7 +423,6 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 
 		if ( g_users[id].IsInRoom() && '/' != g_users[id].GetCommand()[0] )
 		{
-			//커멘드일 경우 제외해야 함
 			SendRoomChat( id );
 		}
 		else

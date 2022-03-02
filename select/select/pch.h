@@ -39,3 +39,10 @@ enum class ERoomEvent
 	Leave,
 	Invite
 };
+
+enum class EInvalidEvent
+{
+	AlreadyExistName,
+	NotExistUser,
+	NotExistRoom
+};
