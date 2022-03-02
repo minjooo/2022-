@@ -4,11 +4,13 @@
 #include "User.h"
 #include "Room.h"
 
+
 std::map<UxInt32, User>		g_users;
-//std::map<UxString, UxInt32>	g_users_access;
 std::map<UxInt32, SOCKET>	g_sockets;
 
 std::vector<Room>			g_rooms;
+UxInt32						g_roomCounter { 0 };
+
 
 UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 {
@@ -93,6 +95,24 @@ UxVoid SendAllUserList( UxInt32 id )
 	SendPacket( id, c );
 }
 
+UxVoid SendRoomList( UxInt32 id )
+{
+	UxString str = "";
+	for ( auto&& room : g_rooms )
+	{
+		str += ( "[" + std::to_string( room.GetRoomNum() ) + "]	" + room.GetCurrentNum() + "	" + room.GetName() + "\r\n" );
+	}
+
+	const UxInt8* c = str.c_str();
+	SendPacket( id, c );
+}
+
+UxString GetNextCommand( UxInt32 id )
+{
+	g_users[id].EraseFirstCommand();
+	return g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
+}
+
 UxVoid CommandHandler( UxInt32 id )
 {
 	UxString command = g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
@@ -114,7 +134,7 @@ UxVoid CommandHandler( UxInt32 id )
 		//대화방 목록 보기
 		else if ( "LT" == command )
 		{
-
+			SendRoomList( id );
 		}
 		//대화방 정보 보기
 		else if ( "ST" == command )
@@ -129,8 +149,7 @@ UxVoid CommandHandler( UxInt32 id )
 		//쪽지 보내기
 		else if ( "TO" == command )
 		{
-			g_users[id].EraseFirstCommand();
-			UxString to = g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
+			UxString to = GetNextCommand( id );
 			//없을 경우 처리 필요
 			for ( auto&& user : g_users )
 			{
@@ -144,7 +163,11 @@ UxVoid CommandHandler( UxInt32 id )
 		//대화방 만들기
 		else if ( "O" == command )
 		{
-
+			UxInt32 max = std::stoi( GetNextCommand( id ) );
+			UxString name = GetNextCommand( id );
+			Room room( ++g_roomCounter, name, max );
+			g_rooms.emplace_back( room );
+			//아직 참여는 안함
 		}
 		//끝내기
 		else if ( "X" == command )
@@ -159,8 +182,7 @@ UxVoid CommandHandler( UxInt32 id )
 		if ( "LOGIN" == command )
 		{
 			//겹치는 이름 처리 필요
-			g_users[id].EraseFirstCommand();
-			UxString name = g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
+			UxString name = GetNextCommand( id );
 			g_users[id].SetName( name );
 			
 			SendWelcome( id );

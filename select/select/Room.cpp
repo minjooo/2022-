@@ -15,6 +15,22 @@ Room::~Room()
 
 }
 
+UxInt32 Room::GetRoomNum()
+{
+	return m_roomNum;
+}
+
+UxString Room::GetCurrentNum()
+{
+	UxString str = "(" + std::to_string( m_users.size() ) + "/" + std::to_string( m_maximun ) + ")";
+	return str;
+}
+
+UxString Room::GetName()
+{
+	return m_roomName;
+}
+
 UxVoid Room::UserJoin( UxInt32 id )
 {
 	m_users.emplace_back( id );

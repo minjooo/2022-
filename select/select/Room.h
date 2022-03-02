@@ -12,6 +12,10 @@ public:
 	~Room();
 
 public:
+	UxInt32					GetRoomNum();
+	UxString				GetCurrentNum();
+	UxString				GetName();
+
 	UxVoid					UserJoin( UxInt32 id );
 	UxVoid					UserLeave( UxInt32 id );
 
