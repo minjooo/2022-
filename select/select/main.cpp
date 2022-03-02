@@ -98,18 +98,38 @@ UxVoid SendBye( UxInt32 id )
 
 UxVoid SendInstruction( UxInt32 id )
 {
-	UxString str =
-		"---------------------------------------------------------------\r\n"
-		"H				명령어 안내\r\n"
-		"US				이용자 목록 보기\r\n"
-		"LT				대화방 목록 보기\r\n"
-		"ST	[방번호]		대화방 정보 보기\r\n"
-		"PF	[상대방ID]		이용자 정보 보기\r\n"
-		"TO	[상대방ID] [메세지]	쪽지 보내기\r\n"
-		"O	[최대인원] [방제목]	대화방 만들기\r\n"
-		"J	[방번호]		대화방 참여하기\r\n"
-		"U	[방번호]		끝내기\r\n"
-		"---------------------------------------------------------------\r\n";
+	UxString str = "";
+	if ( g_users[id].IsInRoom() )
+	{
+		str +=
+			"---------------------------------------------------------------\r\n"
+			"/H				명령어 안내\r\n"
+			"/US				이용자 목록 보기\r\n"
+			"/LT				대화방 목록 보기\r\n"
+			"/ST	[방번호]		대화방 정보 보기\r\n"
+			"/PF	[상대방ID]		이용자 정보 보기\r\n"
+			"/TO	[상대방ID] [메세지]	쪽지 보내기\r\n"
+			"/IN	[상대방ID]		초대하기\r\n"
+			"Q				대화방 나가기\r\n"
+			"X				끝내기\r\n"
+			"---------------------------------------------------------------\r\n";
+	}
+	else
+	{
+		str +=
+			"---------------------------------------------------------------\r\n"
+			"H				명령어 안내\r\n"
+			"US				이용자 목록 보기\r\n"
+			"LT				대화방 목록 보기\r\n"
+			"ST	[방번호]		대화방 정보 보기\r\n"
+			"PF	[상대방ID]		이용자 정보 보기\r\n"
+			"TO	[상대방ID] [메세지]	쪽지 보내기\r\n"
+			"O	[최대인원] [방제목]	대화방 만들기\r\n"
+			"J	[방번호]		대화방 참여하기\r\n"
+			"X				끝내기\r\n"
+			"---------------------------------------------------------------\r\n";
+	}
+		
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
 }
@@ -214,33 +234,33 @@ UxVoid CommandHandler( UxInt32 id )
 	if ( g_users[id].IsAccess() )
 	{
 		//명령어 안내
-		if ( "H" == command )
+		if ( "H" == command || "/H" == command )
 		{
 			SendInstruction( id );
 		}
 		//이용자 목록 보기
-		else if ( "US" == command )
+		else if ( "US" == command || "/US" == command )
 		{
 			SendAllUserList( id );
 		}
 		//대화방 목록 보기
-		else if ( "LT" == command )
+		else if ( "LT" == command || "/LT" == command )
 		{
 			SendRoomList( id );
 		}
 		//대화방 정보 보기
-		else if ( "ST" == command )
+		else if ( "ST" == command || "/ST" == command )
 		{
 			//있는방인지 확인 필요
 			SendRoomInfo( id );
 		}
 		//이용자 정보 보기
-		else if ( "PF" == command )
+		else if ( "PF" == command || "/PF" == command )
 		{
 			SendUserProfile( id );
 		}
 		//쪽지 보내기
-		else if ( "TO" == command )
+		else if ( "TO" == command || "/TO" == command )
 		{
 			UxString to = GetNextCommand( id );
 			//없을 경우 처리 필요
@@ -271,12 +291,24 @@ UxVoid CommandHandler( UxInt32 id )
 			g_users[id].SetRoomNum( roomNum );
 			SendJoinRoom( id );
 		}
+		//초대하기
+		else if ( "/IN" == command )
+		{
+
+		}
+		//대화방 나가기
+		else if ( "/Q" == command )
+		{
+
+		}
 		//끝내기
 		else if ( "X" == command )
 		{
 
 		}
-		SendBasicMention( id );
+
+		if ( !g_users[id].IsInRoom() )
+			SendBasicMention( id );
 	}
 	//before login
 	else
@@ -306,7 +338,7 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 	{
 		std::cout << g_users[id].GetCommand() << std::endl;
 
-		if ( g_users[id].IsInRoom() )
+		if ( g_users[id].IsInRoom() && '/' != g_users[id].GetCommand()[0] )
 		{
 			//커멘드일 경우 제외해야 함
 			SendRoomChat( id );
