@@ -28,12 +28,16 @@ public:
 
 	UxVoid		AddCommand( UxString add );
 	UxVoid		AddCommand( UxInt8* add );
+	UxVoid		EraseFirstCommand();
 	UxVoid		ClearCommand();
 	UxString	GetCommand();
 
 	UxBool		IsInRoom();
 	UxVoid		SetRoomNum( UxInt32 roomNum );
 	UxInt32		GetRoomNum();
+
+public:
+	UxBool		operator==( User& user );
 
 protected:
 	UxString	m_addr;

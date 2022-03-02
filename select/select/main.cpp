@@ -15,6 +15,14 @@ UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 	send( g_sockets[id], buff, strlen(buff), 0 );
 }
 
+UxVoid SendChat( UxInt32 id, UxInt32 to )
+{
+	g_users[id].EraseFirstCommand();
+	UxString str = "[" + g_users[id].GetName() + "]	" + g_users[id].GetCommand() +"\r\n";
+	const UxInt8* c = str.c_str();
+	SendPacket( to, c );
+}
+
 UxVoid SendBasicMention( UxInt32 id )
 {
 	UxString str =
@@ -121,7 +129,17 @@ UxVoid CommandHandler( UxInt32 id )
 		//쪽지 보내기
 		else if ( "TO" == command )
 		{
-
+			g_users[id].EraseFirstCommand();
+			UxString to = g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
+			//없을 경우 처리 필요
+			for ( auto&& user : g_users )
+			{
+				if ( user.second.GetName() == to )
+				{
+					SendChat( id, user.first );
+					break;
+				}
+			}
 		}
 		//대화방 만들기
 		else if ( "O" == command )
@@ -141,9 +159,9 @@ UxVoid CommandHandler( UxInt32 id )
 		if ( "LOGIN" == command )
 		{
 			//겹치는 이름 처리 필요
-			UxString name = g_users[id].GetCommand().substr( g_users[id].GetCommand().find( " " ) + 1, g_users[id].GetCommand().length() - 1 );
+			g_users[id].EraseFirstCommand();
+			UxString name = g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
 			g_users[id].SetName( name );
-			//g_users_access.insert( std::make_pair( name, id ) );
 			
 			SendWelcome( id );
 			SendBasicMention( id );

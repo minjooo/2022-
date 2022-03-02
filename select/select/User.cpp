@@ -75,6 +75,11 @@ UxVoid User::AddCommand( UxInt8* add )
 	m_command += tmp;
 }
 
+UxVoid User::EraseFirstCommand()
+{
+	m_command.erase( m_command.begin(), std::find( m_command.begin(), m_command.end(), ' ' ) + 1 );
+}
+
 UxVoid User::ClearCommand()
 {
 	m_command.clear();
@@ -98,4 +103,9 @@ UxVoid User::SetRoomNum( UxInt32 roomNum )
 UxInt32 User::GetRoomNum()
 {
 	return m_roomNum;
+}
+
+UxBool User::operator==( User& user )
+{
+	return user.GetName() == m_name;
 }
