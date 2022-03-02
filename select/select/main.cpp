@@ -208,6 +208,27 @@ UxInt32 SendOpenRoom( UxInt32 id )
 	return roomNum;
 }
 
+UxVoid SendInvite( UxInt32 id )
+{
+	UxString who = GetNextCommand( id );
+	User user;
+	if ( false == FindUserWithName( who, &user ) )
+	{
+		//없을 경우 처리 필요
+		return;
+	}
+	{
+		UxString str = "\r\n# " + g_users[id].GetName() + "님이 " + std::to_string( g_users[id].GetRoomNum() ) + "번 방에서 초대 요청을 했습니다.\r\n";
+		const UxInt8* c = str.c_str();
+		SendPacket( user.GetId(), c );
+	}
+	{
+		UxString str = "** 초대 요청을 했습니다.\r\n";
+		const UxInt8* c = str.c_str();
+		SendPacket( id, c );
+	}
+}
+
 UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e)
 {
 	UxString str = "";
@@ -309,7 +330,7 @@ UxVoid CommandHandler( UxInt32 id )
 		//초대하기
 		else if ( "/IN" == command )
 		{
-
+			SendInvite( id );
 		}
 		//대화방 나가기
 		else if ( "/Q" == command )
