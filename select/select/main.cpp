@@ -1,13 +1,14 @@
 
 
-#include "pch.h"
+#include "typedef.h"
+#include "const.h"
 #include "User.h"
 #include "Room.h"
 
 
 SOCKET g_sockets[WSA_MAXIMUM_WAIT_EVENTS];
 WSAEVENT g_events[WSA_MAXIMUM_WAIT_EVENTS];
-UxInt32 g_counter = 1;
+UxInt32 g_counter { 1 };
 
 std::map<UxInt32, User>		g_users;
 std::map<UxInt32, Room>		g_rooms;
@@ -20,7 +21,7 @@ UxString GetNextCommand( UxInt32 id )
 	return g_users[id].GetCommand().substr( 0, g_users[id].GetCommand().find( " " ) );
 }
 
-UxBool FindUserWithName( UxString name, User* user )
+UxBool FindUserWithName( const UxString& name, User* user )
 {
 	for ( auto&& u : g_users )
 	{
@@ -33,7 +34,7 @@ UxBool FindUserWithName( UxString name, User* user )
 	return false;
 }
 
-UxBool FindUserWithName( UxString name )
+UxBool FindUserWithName( const UxString& name )
 {
 	for ( auto&& u : g_users )
 	{
@@ -96,90 +97,50 @@ UxVoid SendInvalid( UxInt32 id, EInvalidEvent e )
 
 UxVoid SendBasicMention( UxInt32 id )
 {
-	UxString str =
-		"명령어안내(H) 종료(X)\r\n"
-		"선택>  ";
-	const UxInt8* c = str.c_str();
+	const UxInt8* c = Message::basic.c_str();
 	SendPacket( id, c );
 }
 
 UxVoid SendLoginMention( UxInt32 id )
 {
-	UxString str =
-		"** 안녕하세요 텍스트 채팅서버 ver 0.00001입니다\r\n"
-		"** 로그인 명령어(LOGIN)을 사용해주세요\r\n";
-	const UxInt8* c = str.c_str();
+	const UxInt8* c = Message::login.c_str();
 	SendPacket( id, c );
 }
 
 UxVoid SendWelcome( UxInt32 id )
 {
-	UxString str =
-		"---------------------------------------------------------------\r\n"
-		"반갑습니다. 텍스트 채팅서버 ver0.000001입니다.\r\n\r\n"
-		"이용중 불편하신 점이 있으면 아래 이메일로 문의 바랍니다\r\n"
-		"감사합니다\r\n\r\n"
-		"---------------------------------------------------------------\r\n";
-	const UxInt8* c = str.c_str();
+	const UxInt8* c = Message::welcome.c_str();
 	SendPacket( id, c );
 }
 
 UxVoid SendBye( UxInt32 id )
 {
-	UxString str =
-		"---------------------------------------------------------------\r\n"
-		"이용해주셔서 감사합니다.\r\n\r\n"
-		"오늘 하루 행복하시길 바랍니다. ^^\r\n"
-		"---------------------------------------------------------------\r\n";
-	const UxInt8* c = str.c_str();
+	const UxInt8* c = Message::bye.c_str();
 	SendPacket( id, c );
 }
 
 UxVoid SendInstruction( UxInt32 id )
 {
-	UxString str = "";
 	if ( g_users[id].IsInRoom() )
 	{
-		str +=
-			"---------------------------------------------------------------\r\n"
-			"/H				명령어 안내\r\n"
-			"/US				이용자 목록 보기\r\n"
-			"/LT				대화방 목록 보기\r\n"
-			"/ST	[방번호]		대화방 정보 보기\r\n"
-			"/PF	[상대방ID]		이용자 정보 보기\r\n"
-			"/TO	[상대방ID] [메세지]	쪽지 보내기\r\n"
-			"/IN	[상대방ID]		초대하기\r\n"
-			"Q				대화방 나가기\r\n"
-			"X				끝내기\r\n"
-			"---------------------------------------------------------------\r\n";
+		const UxInt8* c = Message::helpRoom.c_str();
+		SendPacket( id, c );
 	}
 	else
 	{
-		str +=
-			"---------------------------------------------------------------\r\n"
-			"H				명령어 안내\r\n"
-			"US				이용자 목록 보기\r\n"
-			"LT				대화방 목록 보기\r\n"
-			"ST	[방번호]		대화방 정보 보기\r\n"
-			"PF	[상대방ID]		이용자 정보 보기\r\n"
-			"TO	[상대방ID] [메세지]	쪽지 보내기\r\n"
-			"O	[최대인원] [방제목]	대화방 만들기\r\n"
-			"J	[방번호]		대화방 참여하기\r\n"
-			"X				끝내기\r\n"
-			"---------------------------------------------------------------\r\n";
+		const UxInt8* c = Message::helpLobby.c_str();
+		SendPacket( id, c );
 	}
-		
-	const UxInt8* c = str.c_str();
-	SendPacket( id, c );
 }
 
 UxVoid SendAllUserList( UxInt32 id )
 {
-	UxString str = "";
+	UxString str = "------------------------- 사람들 목록 -------------------------\r\n";
 	for ( auto&& user : g_users )
 	{
 		str += ("[" + user.second.GetName() + "]		" + user.second.GetAddr() + "\r\n");
 	}
+	str += "---------------------------------------------------------------\r\n";
 
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
@@ -187,11 +148,12 @@ UxVoid SendAllUserList( UxInt32 id )
 
 UxVoid SendRoomList( UxInt32 id )
 {
-	UxString str = "";
+	UxString str = "------------------------- 대화방 목록 -------------------------\r\n";
 	for ( auto&& room : g_rooms )
 	{
 		str += ( "[" + std::to_string( room.second.GetRoomNum() ) + "]	" + room.second.GetCurrentNum() + "	" + room.second.GetName() + "\r\n" );
 	}
+	str += "---------------------------------------------------------------\r\n";
 
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
@@ -276,8 +238,7 @@ UxVoid SendInvite( UxInt32 id )
 		SendPacket( user.GetId(), c );
 	}
 	{
-		UxString str = "** 초대 요청을 했습니다.\r\n";
-		const UxInt8* c = str.c_str();
+		const UxInt8* c = Message::invite.c_str();
 		SendPacket( id, c );
 	}
 }
@@ -510,10 +471,8 @@ UxVoid main() {
 	WSAEVENT listenEvent = WSACreateEvent();
 	WSAEventSelect( listener, listenEvent, FD_ACCEPT );
 
-
 	g_events[0] = listenEvent;
 	g_sockets[0] = listener;
-
 
 	while ( true ) {
 		DWORD res = WSAWaitForMultipleEvents( g_counter, g_events, FALSE, WSA_INFINITE, TRUE );
@@ -544,14 +503,13 @@ UxVoid main() {
 			g_events[g_counter] = cEvt;
 			std::cout << g_users[g_counter].GetAddr() << " access" << std::endl;
 			SendLoginMention( g_counter );
-			//g_users[g_counter].SetAccess();
 			g_counter++;
 		}
 
 		if ( networkEvents.lNetworkEvents & FD_READ ) 
 		{
-			UxInt8 buffer[MAX_BUFFER];
-			UxInt32 readBytes = recv( g_sockets[idx], buffer, MAX_BUFFER, 0 );
+			UxInt8 buffer[max_buffer];
+			UxInt32 readBytes = recv( g_sockets[idx], buffer, max_buffer, 0 );
 			buffer[readBytes] = '\0';
 			PacketHandler( idx, buffer );
 		}

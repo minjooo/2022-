@@ -1,7 +1,7 @@
 
 
 #pragma once
-#include "pch.h"
+#include "typedef.h"
 
 
 class Room

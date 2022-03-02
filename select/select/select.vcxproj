@@ -141,7 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="const.h" />
+    <ClInclude Include="typedef.h" />
     <ClInclude Include="Room.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>

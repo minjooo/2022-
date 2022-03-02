@@ -13,11 +13,6 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
 
-
-#define MAX_BUFFER 1024
-#define SERVER_PORT 3500
-
-
 using UxVoid	= void;
 using UxInt8	= char;
 using UxUInt8	= unsigned char;
@@ -32,6 +27,9 @@ using UxDouble	= double;
 using UxBool	= bool;
 using UxChar	= wchar_t;
 using UxString	= std::string;
+
+constexpr UxInt32 max_buffer = 1024;
+#define SERVER_PORT 3500
 
 enum class ERoomEvent
 {

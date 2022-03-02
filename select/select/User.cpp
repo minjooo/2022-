@@ -8,7 +8,7 @@ User::User( UxInt32 id, SOCKET socket )
 	m_id = id;
 	m_name = "";
 	m_isAccess = false;
-	m_socket = socket;
+	//m_socket = socket;
 	m_command = "";
 	m_isInRoom = false;
 	m_roomNum = -1;
@@ -81,8 +81,7 @@ UxVoid User::AddCommand( UxString add )
 
 UxVoid User::AddCommand( UxInt8* add )
 {
-	UxString tmp( add );
-	m_command += tmp;
+	m_command += add;
 }
 
 UxVoid User::EraseFirstCommand()

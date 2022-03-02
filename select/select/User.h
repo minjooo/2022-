@@ -1,7 +1,7 @@
 
 
 #pragma once
-#include "pch.h"
+#include "typedef.h"
 
 
 class User
@@ -50,7 +50,7 @@ protected:
 	UxString	m_name;
 	UxBool		m_isAccess;
 
-	SOCKET		m_socket;
+	//SOCKET		m_socket;
 	UxString	m_command;
 
 	UxBool		m_isInRoom;
