@@ -390,7 +390,6 @@ UxVoid CommandHandler( UxInt32 id )
 	{
 		if ( "LOGIN" == command )
 		{
-			//겹치는 이름 처리 필요
 			UxString name = GetNextCommand( id );
 
 			if ( FindUserWithName( name ) )
@@ -419,7 +418,7 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 	//enter
 	if ( '\r' == buff[0] )
 	{
-		std::cout << g_users[id].GetCommand() << std::endl;
+		std::cout << g_users[id].GetAddr() << " [" << g_users[id].GetName() << "] " << g_users[id].GetCommand() << std::endl;
 
 		if ( g_users[id].IsInRoom() && '/' != g_users[id].GetCommand()[0] )
 		{
@@ -489,7 +488,7 @@ UxVoid main() {
 			g_users[counter] = User( counter, client );
 			g_users[counter].SetAddr( address.sin_addr, address.sin_port );
 			events[counter] = cEvt;
-			std::cout << "new client " << counter << " access	" << g_users[counter].GetAddr() << "\n";
+			std::cout << g_users[counter].GetAddr() << " access" << std::endl;
 			SendLoginMention( counter );
 			counter++;
 		}
