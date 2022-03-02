@@ -18,6 +18,7 @@ public:
 
 	UxVoid					UserJoin( UxInt32 id );
 	UxVoid					UserLeave( UxInt32 id );
+	std::vector<UxInt32>	GetUsers();
 
 	UxBool					IsRoomMax();
 

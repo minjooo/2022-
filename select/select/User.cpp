@@ -95,9 +95,15 @@ UxBool User::IsInRoom()
 	return m_isInRoom;
 }
 
+//UxVoid User::SetIsInRoomOpposit()
+//{
+//	m_isInRoom = !m_isInRoom;
+//}
+
 UxVoid User::SetRoomNum( UxInt32 roomNum )
 {
 	m_roomNum = roomNum;
+	m_isInRoom = true;
 }
 
 UxInt32 User::GetRoomNum()

@@ -41,6 +41,11 @@ UxVoid Room::UserLeave( UxInt32 id )
 	m_users.erase( std::remove( m_users.begin(), m_users.end(), id ), m_users.end() );
 }
 
+std::vector<UxInt32> Room::GetUsers()
+{
+	return m_users;
+}
+
 UxBool Room::IsRoomMax()
 {
 	return m_users.size() == m_maximun;

@@ -8,7 +8,7 @@
 std::map<UxInt32, User>		g_users;
 std::map<UxInt32, SOCKET>	g_sockets;
 
-std::vector<Room>			g_rooms;
+std::map<UxInt32, Room>		g_rooms;
 UxInt32						g_roomCounter { 0 };
 
 
@@ -42,6 +42,17 @@ UxVoid SendChat( UxInt32 id, UxInt32 to )
 	UxString str = "[" + g_users[id].GetName() + "]	" + g_users[id].GetCommand() +"\r\n";
 	const UxInt8* c = str.c_str();
 	SendPacket( to, c );
+}
+
+UxVoid SendRoomChat( UxInt32 id )
+{
+	UxString str = g_users[id].GetName() + "> " + g_users[id].GetCommand() + "\r\n";
+	const UxInt8* c = str.c_str();
+	//std::vector<UxInt32> v = g_rooms[g_users[id].GetRoomNum()].GetUsers();
+	for ( auto&& userId : g_rooms[g_users[id].GetRoomNum()].GetUsers() )
+	{
+		SendPacket( userId, c );
+	}
 }
 
 UxVoid SendBasicMention( UxInt32 id )
@@ -96,6 +107,7 @@ UxVoid SendInstruction( UxInt32 id )
 		"PF	[상대방ID]		이용자 정보 보기\r\n"
 		"TO	[상대방ID] [메세지]	쪽지 보내기\r\n"
 		"O	[최대인원] [방제목]	대화방 만들기\r\n"
+		"J	[방번호]		대화방 참여하기\r\n"
 		"U	[방번호]		끝내기\r\n"
 		"-------------------------------------------------------\r\n";
 	const UxInt8* c = str.c_str();
@@ -119,7 +131,7 @@ UxVoid SendRoomList( UxInt32 id )
 	UxString str = "";
 	for ( auto&& room : g_rooms )
 	{
-		str += ( "[" + std::to_string( room.GetRoomNum() ) + "]	" + room.GetCurrentNum() + "	" + room.GetName() + "\r\n" );
+		str += ( "[" + std::to_string( room.second.GetRoomNum() ) + "]	" + room.second.GetCurrentNum() + "	" + room.second.GetName() + "\r\n" );
 	}
 
 	const UxInt8* c = str.c_str();
@@ -142,6 +154,37 @@ UxVoid SendUserProfile( UxInt32 id )
 
 	const UxInt8* c = str.c_str();
 	SendPacket( id, c );
+}
+
+UxInt32 SendOpenRoom( UxInt32 id )
+{
+	UxInt32 max = std::stoi( GetNextCommand( id ) );
+	UxString name = GetNextCommand( id );
+	UxInt32 roomNum = ++g_roomCounter;
+	Room room( roomNum, name, max );
+	g_rooms.insert( std::make_pair( roomNum, room ) );
+
+	UxString str = name + "방이 개설되었습니다\r\n";
+	const UxInt8* c = str.c_str();
+	SendPacket( id, c );
+	return roomNum;
+}
+
+UxVoid SendJoinRoom( UxInt32 id )
+{
+	UxString str = g_users[id].GetName() + "님이 채팅방에 참여했습니다.\r\n";
+	const UxInt8* c = str.c_str();
+
+	for ( auto&& userId : g_rooms[g_users[id].GetRoomNum()].GetUsers() )
+	{
+		SendPacket( userId, c );
+	}
+}
+
+//예외들
+UxVoid SendInvalid( UxInt32 id )
+{
+
 }
 
 UxVoid CommandHandler( UxInt32 id )
@@ -194,11 +237,19 @@ UxVoid CommandHandler( UxInt32 id )
 		//대화방 만들기
 		else if ( "O" == command )
 		{
-			UxInt32 max = std::stoi( GetNextCommand( id ) );
-			UxString name = GetNextCommand( id );
-			Room room( ++g_roomCounter, name, max );
-			g_rooms.emplace_back( room );
-			//아직 참여는 안함
+			UxInt32 roomNum = SendOpenRoom( id );
+			g_rooms[roomNum].UserJoin( id );
+			g_users[id].SetRoomNum( roomNum );
+			SendJoinRoom( id );
+		}
+		//대화방 참여하기
+		else if ( "J" == command )
+		{
+			UxInt32 roomNum = std::stoi( GetNextCommand( id ) );
+			//있는방인지 확인 필요
+			g_rooms[roomNum].UserJoin( id );
+			g_users[id].SetRoomNum( roomNum );
+			SendJoinRoom( id );
 		}
 		//끝내기
 		else if ( "X" == command )
@@ -234,7 +285,16 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 	if ( '\r' == buff[0] )
 	{
 		std::cout << g_users[id].GetCommand() << std::endl;
-		CommandHandler( id );
+
+		if ( g_users[id].IsInRoom() )
+		{
+			//커멘드일 경우 제외해야 함
+			SendRoomChat( id );
+		}
+		else
+		{
+			CommandHandler( id );
+		}
 		g_users[id].ClearCommand();
 	}
 	else
