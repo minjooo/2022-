@@ -456,7 +456,8 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 	//backspace처리 필요
 }
 
-UxVoid main() {
+UxVoid main() 
+{
 	WSADATA wsa;
 	WSAStartup( MAKEWORD( 2, 2 ), &wsa );
 
@@ -474,7 +475,8 @@ UxVoid main() {
 	g_events[0] = listenEvent;
 	g_sockets[0] = listener;
 
-	while ( true ) {
+	while ( true ) 
+	{
 		DWORD res = WSAWaitForMultipleEvents( g_counter, g_events, FALSE, WSA_INFINITE, TRUE );
 		if ( res == WSA_WAIT_FAILED )
 			break;
