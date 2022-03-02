@@ -60,11 +60,36 @@ UxVoid SendRoomChat( UxInt32 id )
 {
 	UxString str = g_users[id].GetName() + "> " + g_users[id].GetCommand() + "\r\n";
 	const UxInt8* c = str.c_str();
-	//std::vector<UxInt32> v = g_rooms[g_users[id].GetRoomNum()].GetUsers();
 	for ( auto&& userId : g_rooms[g_users[id].GetRoomNum()].GetUsers() )
 	{
 		SendPacket( userId, c );
 	}
+}
+
+UxVoid SendInvalid( UxInt32 id, EInvalidEvent e )
+{
+	UxString str = "";
+
+	switch ( e )
+	{
+	case EInvalidEvent::AlreadyExistName:
+		str += "이미 존재하는 아이디입니다.\r\n";
+		break;
+	case EInvalidEvent::NotExistUser:
+		str += "존재하지 않는 아이디입니다.\r\n";
+		break;
+	case EInvalidEvent::NotExistRoom:
+		str += "존재하지 않는 방입니다.\r\n";
+		break;
+	case EInvalidEvent::RoomFull:
+		str += "방이 가득찼습니다.\r\n";
+		break;
+	default:
+		break;
+	}
+
+	const UxInt8* c = str.c_str();
+	SendPacket( id, c );
 }
 
 UxVoid SendBasicMention( UxInt32 id )
@@ -176,10 +201,10 @@ UxVoid SendUserProfile( UxInt32 id )
 	User user;
 	if ( false == FindUserWithName( who, &user ) )
 	{
-		//없을 경우 처리 필요
+		SendInvalid( id, EInvalidEvent::NotExistUser );
 		return;
 	}
-
+	//방에 있을 때 처리 추가 필요
 	UxString str =
 		"** " + user.GetName() + "님은 현재 대기실에 있습니다,\r\n"
 		"** 접속지 : " + user.GetAddr() + "\r\n";
@@ -191,6 +216,12 @@ UxVoid SendUserProfile( UxInt32 id )
 UxVoid SendRoomInfo( UxInt32 id )
 {
 	UxInt32 num = std::stoi( GetNextCommand( id ) );
+
+	if ( 0 == g_rooms.count( num ) ) 
+	{
+		SendInvalid( id, EInvalidEvent::NotExistRoom );
+		return;
+	}
 
 	UxString str =
 		"------------------------- 대화방 정보 -------------------------\r\n"
@@ -227,7 +258,7 @@ UxVoid SendInvite( UxInt32 id )
 	User user;
 	if ( false == FindUserWithName( who, &user ) )
 	{
-		//없을 경우 처리 필요
+		SendInvalid( id, EInvalidEvent::NotExistUser );
 		return;
 	}
 	{
@@ -254,8 +285,6 @@ UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e)
 	case ERoomEvent::Leave:
 		str += g_users[id].GetName() + "님이 채팅방을 나갔습니다.\r\n";
 		break;
-	case ERoomEvent::Invite:
-		break;
 	default:
 		break;
 	}
@@ -266,30 +295,6 @@ UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e)
 	{
 		SendPacket( userId, c );
 	}
-}
-
-//예외들
-UxVoid SendInvalid( UxInt32 id, EInvalidEvent e )
-{
-	UxString str = "";
-
-	switch ( e )
-	{
-	case EInvalidEvent::AlreadyExistName:
-		str += "이미 존재하는 아이디입니다.\r\n";
-		break;
-	case EInvalidEvent::NotExistUser:
-		str += "존재하지 않는 아이디입니다.\r\n";
-		break;
-	case EInvalidEvent::NotExistRoom:
-		str += "존재하지 않는 방입니다.\r\n";
-		break;
-	default:
-		break;
-	}
-
-	const UxInt8* c = str.c_str();
-	SendPacket( id, c );
 }
 
 UxVoid CommandHandler( UxInt32 id )
@@ -318,7 +323,6 @@ UxVoid CommandHandler( UxInt32 id )
 		//대화방 정보 보기
 		else if ( "ST" == command || "/ST" == command )
 		{
-			//있는방인지 확인 필요
 			SendRoomInfo( id );
 		}
 		//이용자 정보 보기
@@ -330,14 +334,14 @@ UxVoid CommandHandler( UxInt32 id )
 		else if ( "TO" == command || "/TO" == command )
 		{
 			UxString to = GetNextCommand( id );
-			//없을 경우 처리 필요
-			for ( auto&& user : g_users )
+			User user;
+			if ( false == FindUserWithName( to, &user ) )
 			{
-				if ( user.second.GetName() == to )
-				{
-					SendChat( id, user.first );
-					break;
-				}
+				SendInvalid( id, EInvalidEvent::NotExistUser );
+			}
+			else
+			{
+				SendChat( id, user.GetId() );
 			}
 		}
 		//대화방 만들기
@@ -353,10 +357,21 @@ UxVoid CommandHandler( UxInt32 id )
 		{
 			UxInt32 roomNum = std::stoi( GetNextCommand( id ) );
 			//있는방인지 확인 필요
+			if ( 0 == g_rooms.count( roomNum ) )
+			{
+				SendInvalid( id, EInvalidEvent::NotExistRoom );
+			}
 			//참여 가능한지 확인 필요
-			g_rooms[roomNum].UserJoin( id );
-			g_users[id].SetRoomNum( roomNum );
-			BrodcastRoom( id, ERoomEvent::Join );
+			else if ( g_rooms[roomNum].IsRoomMax() )
+			{
+				SendInvalid( id, EInvalidEvent::RoomFull );
+			}
+			else
+			{
+				g_rooms[roomNum].UserJoin( id );
+				g_users[id].SetRoomNum( roomNum );
+				BrodcastRoom( id, ERoomEvent::Join );
+			}
 		}
 		//초대하기
 		else if ( "/IN" == command )

@@ -36,13 +36,13 @@ using UxString	= std::string;
 enum class ERoomEvent
 {
 	Join,
-	Leave,
-	Invite
+	Leave
 };
 
 enum class EInvalidEvent
 {
 	AlreadyExistName,
 	NotExistUser,
-	NotExistRoom
+	NotExistRoom,
+	RoomFull
 };
