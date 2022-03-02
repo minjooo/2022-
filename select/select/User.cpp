@@ -95,6 +95,12 @@ UxBool User::IsInRoom()
 	return m_isInRoom;
 }
 
+UxVoid User::LeaveRoom()
+{
+	m_roomNum = -1;
+	m_isInRoom = false;
+}
+
 UxVoid User::SetRoomNum( UxInt32 roomNum )
 {
 	m_roomNum = roomNum;

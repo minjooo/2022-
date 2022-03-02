@@ -208,9 +208,24 @@ UxInt32 SendOpenRoom( UxInt32 id )
 	return roomNum;
 }
 
-UxVoid SendJoinRoom( UxInt32 id )
+UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e)
 {
-	UxString str = g_users[id].GetName() + "님이 채팅방에 참여했습니다.\r\n";
+	UxString str = "";
+
+	switch ( e )
+	{
+	case ERoomEvent::Join:
+		str += g_users[id].GetName() + "님이 채팅방에 참여했습니다.\r\n";
+		break;
+	case ERoomEvent::Leave:
+		str += g_users[id].GetName() + "님이 채팅방을 나갔습니다.\r\n";
+		break;
+	case ERoomEvent::Invite:
+		break;
+	default:
+		break;
+	}
+
 	const UxInt8* c = str.c_str();
 
 	for ( auto&& userId : g_rooms[g_users[id].GetRoomNum()].GetUsers() )
@@ -279,7 +294,7 @@ UxVoid CommandHandler( UxInt32 id )
 			UxInt32 roomNum = SendOpenRoom( id );
 			g_rooms[roomNum].UserJoin( id );
 			g_users[id].SetRoomNum( roomNum );
-			SendJoinRoom( id );
+			BrodcastRoom( id, ERoomEvent::Join );
 		}
 		//대화방 참여하기
 		else if ( "J" == command )
@@ -289,7 +304,7 @@ UxVoid CommandHandler( UxInt32 id )
 			//참여 가능한지 확인 필요
 			g_rooms[roomNum].UserJoin( id );
 			g_users[id].SetRoomNum( roomNum );
-			SendJoinRoom( id );
+			BrodcastRoom( id, ERoomEvent::Join );
 		}
 		//초대하기
 		else if ( "/IN" == command )
@@ -299,7 +314,9 @@ UxVoid CommandHandler( UxInt32 id )
 		//대화방 나가기
 		else if ( "/Q" == command )
 		{
-
+			BrodcastRoom( id, ERoomEvent::Leave );
+			g_rooms[g_users[id].GetRoomNum()].UserLeave( id );
+			g_users[id].LeaveRoom();
 		}
 		//끝내기
 		else if ( "X" == command )

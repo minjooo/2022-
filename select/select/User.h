@@ -33,7 +33,7 @@ public:
 	UxString	GetCommand();
 
 	UxBool		IsInRoom();
-	//UxVoid		SetIsInRoomOpposit();
+	UxVoid		LeaveRoom();
 	UxVoid		SetRoomNum( UxInt32 roomNum );
 	UxInt32		GetRoomNum();
 

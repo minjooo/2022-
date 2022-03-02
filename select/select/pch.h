@@ -30,3 +30,10 @@ typedef double				UxDouble;
 typedef bool				UxBool;
 typedef wchar_t				UxChar;
 typedef std::string			UxString;
+
+enum class ERoomEvent
+{
+	Join,
+	Leave,
+	Invite
+};
