@@ -317,6 +317,7 @@ UxVoid CommandHandler( UxInt32 id )
 			BrodcastRoom( id, ERoomEvent::Leave );
 			g_rooms[g_users[id].GetRoomNum()].UserLeave( id );
 			g_users[id].LeaveRoom();
+			//방 없어질지 봐야됨
 		}
 		//끝내기
 		else if ( "X" == command )

@@ -16,20 +16,20 @@
 #define SERVER_PORT 3500
 
 
-typedef void				UxVoid;
-typedef char				UxInt8;
-typedef unsigned char		UxUInt8;
-typedef short				UxInt16;
-typedef unsigned short		UxUInt16;
-typedef int					UxInt32;
-typedef unsigned int		UxUInt32;
-typedef __int64				UxInt64;
-typedef unsigned __int64	UxUInt64;
-typedef float				UxSingle;
-typedef double				UxDouble;
-typedef bool				UxBool;
-typedef wchar_t				UxChar;
-typedef std::string			UxString;
+using UxVoid	= void;
+using UxInt8	= char;
+using UxUInt8	= unsigned char;
+using UxInt16	= short;
+using UxUInt16	= unsigned short;
+using UxInt32	= int;
+using UxUInt32	= unsigned int;
+using UxInt64	= __int64;
+using UxUInt64	= unsigned __int64;
+using UxSingle	= float;
+using UxDouble	= double;
+using UxBool	= bool;
+using UxChar	= wchar_t;
+using UxString	= std::string;
 
 enum class ERoomEvent
 {
