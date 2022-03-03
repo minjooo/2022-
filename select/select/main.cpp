@@ -255,14 +255,14 @@ UxVoid SendInvite( UxInt32 id )
 	SendPacket( id, Message::invite.c_str() );
 }
 
-UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e, UxInt32 roomNum)
+UxVoid BroadcastRoom( UxInt32 id , ERoomEvent e, UxInt32 roomNum)
 {
 	UxString str = "";
 
 	switch ( e )
 	{
 	case ERoomEvent::Join:
-		str += g_users[id].GetName() + "님이 채팅방에 참여했습니다.\r\n";
+		str += g_users[id].GetName() + "님이 채팅방에 참여했습니다.\r\n도움말은 /h입력\r\n";
 		break;
 	case ERoomEvent::Leave:
 		str += g_users[id].GetName() + "님이 채팅방을 나갔습니다.\r\n";
@@ -300,7 +300,7 @@ UxVoid CleanUp( UxInt32 id )
 	{
 		UxInt32 roomNum = g_users[id].GetRoomNum();
 		g_rooms[roomNum].UserLeave( id );
-		BrodcastRoom( id, ERoomEvent::Leave , roomNum );
+		BroadcastRoom( id, ERoomEvent::Leave , roomNum );
 
 		if ( g_rooms[roomNum].IsRoomEmpty() )
 		{
@@ -378,7 +378,7 @@ UxVoid CommandHandler( UxInt32 id )
 			{
 				g_rooms[roomNum].UserJoin( id );
 				g_users[id].SetRoomNum( roomNum );
-				BrodcastRoom( id, ERoomEvent::Join, roomNum );
+				BroadcastRoom( id, ERoomEvent::Join, roomNum );
 			}
 		}
 		//대화방 참여하기
@@ -416,7 +416,7 @@ UxVoid CommandHandler( UxInt32 id )
 				{
 					g_rooms[roomNum].UserJoin( id );
 					g_users[id].SetRoomNum( roomNum );
-					BrodcastRoom( id, ERoomEvent::Join, roomNum );
+					BroadcastRoom( id, ERoomEvent::Join, roomNum );
 				}
 			}
 		}
@@ -430,7 +430,7 @@ UxVoid CommandHandler( UxInt32 id )
 		{
 			UxInt32 roomNum = g_users[id].GetRoomNum();
 			g_rooms[roomNum].UserLeave( id );
-			BrodcastRoom( id, ERoomEvent::Leave , roomNum );
+			BroadcastRoom( id, ERoomEvent::Leave , roomNum );
 			g_users[id].LeaveRoom();
 
 			if ( g_rooms[roomNum].IsRoomEmpty() )
@@ -593,7 +593,7 @@ UxInt32 main( UxInt32 argc, UxInt8* argv[] )
 				{
 					UxInt32 roomNum = g_users[idx].GetRoomNum();
 					g_rooms[roomNum].UserLeave( idx );
-					BrodcastRoom( idx, ERoomEvent::Leave, roomNum );
+					BroadcastRoom( idx, ERoomEvent::Leave, roomNum );
 
 					if ( g_rooms[roomNum].IsRoomEmpty() )
 					{
