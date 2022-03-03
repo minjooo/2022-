@@ -14,8 +14,7 @@ namespace Message
 		"선택>  ";
 
 	const UxString login =
-		"** 안녕하세요 텍스트 채팅서버 ver 0.1입니다\r\n"
-		"** 로그인 명령어(LOGIN)을 사용해주세요\r\n";
+		"** 로그인 명령어(LOGIN [ID])을 사용해주세요\r\n";
 
 	const UxString welcome =
 		"---------------------------------------------------------------\r\n"

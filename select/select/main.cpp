@@ -45,6 +45,13 @@ UxBool FindUserWithName( const UxString& name )
 	return false;
 }
 
+UxBool IsNumber( const UxString& str )
+{
+	for ( auto&& c : str )
+		if ( std::isdigit( c ) == 0 ) return false;
+	return true;
+}
+
 //send
 UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 {
@@ -182,6 +189,11 @@ UxVoid SendRoomInfo( UxInt32 id )
 		SendInvalid( id, EInvalidEvent::NotFullCommand );
 		return;
 	}
+	if ( !IsNumber( tmp ) )
+	{
+		SendInvalid( id, EInvalidEvent::NotFullCommand );
+		return;
+	}
 	UxInt32 num = std::stoi( tmp );
 
 	if ( 0 == g_rooms.count( num ) ) 
@@ -208,6 +220,8 @@ UxInt32 SendOpenRoom( UxInt32 id )
 {
 	UxString tmp = GetNextCommand( id );
 	if ( tmp == "" )
+		return -1;
+	if ( !IsNumber( tmp ) )
 		return -1;
 	UxInt32 max = std::stoi( tmp );
 	UxString name = GetNextCommand( id );
@@ -375,9 +389,21 @@ UxVoid CommandHandler( UxInt32 id )
 			{
 				SendInvalid( id, EInvalidEvent::NotFullCommand );
 			}
+			else if ( !IsNumber( tmp ) )
+			{
+				SendInvalid( id, EInvalidEvent::NotFullCommand );
+			}
 			else
 			{
-				UxInt32 roomNum = std::stoi( tmp );
+				UxInt32 roomNum { 0 };
+				try
+				{
+					roomNum = std::stoi( tmp );
+				}
+				catch ( const std::exception& e )
+				{
+					SendInvalid( id, EInvalidEvent::NotFullCommand );
+				}
 				if ( 0 == g_rooms.count( roomNum ) )
 				{
 					SendInvalid( id, EInvalidEvent::NotExistRoom );
