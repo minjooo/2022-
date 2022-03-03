@@ -449,11 +449,14 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 		}
 		g_users[id].ClearCommand();
 	}
+	else if ( '/b' == buff[0] )
+	{
+		g_users[id].AddBackspace();
+	}
 	else
 	{
 		g_users[id].AddCommand( buff );
 	}
-	//backspace처리 필요
 }
 
 UxVoid main() 

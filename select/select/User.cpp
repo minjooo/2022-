@@ -84,6 +84,12 @@ UxVoid User::AddCommand( UxInt8* add )
 	m_command += add;
 }
 
+UxVoid User::AddBackspace()
+{
+	if ( m_command.length() > 0 )
+		m_command = m_command.substr( 0, m_command.length() - 1 );
+}
+
 UxVoid User::EraseFirstCommand()
 {
 	m_command.erase( m_command.begin(), std::find( m_command.begin(), m_command.end(), ' ' ) + 1 );

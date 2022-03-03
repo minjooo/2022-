@@ -30,6 +30,7 @@ public:
 
 	UxVoid		AddCommand( UxString add );
 	UxVoid		AddCommand( UxInt8* add );
+	UxVoid		AddBackspace();
 	UxVoid		EraseFirstCommand();
 	UxVoid		ClearCommand();
 	UxString	GetCommand();
