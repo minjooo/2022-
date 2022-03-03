@@ -3,12 +3,11 @@
 #include "User.h"
 
 
-User::User( UxInt32 id, SOCKET socket )
+User::User( UxInt32 id )
 {
 	m_id = id;
 	m_name = "";
 	m_isAccess = false;
-	//m_socket = socket;
 	m_command = "";
 	m_isInRoom = false;
 	m_roomNum = -1;
@@ -37,6 +36,16 @@ UxVoid User::SetAddr( const IN_ADDR& addr, const USHORT& port )
 UxString User::GetAddr()
 {
 	return m_addr;
+}
+
+UxVoid User::SetSocket( const SOCKET& sock )
+{
+	m_socket = sock;
+}
+
+SOCKET User::GetSocket()
+{
+	return m_socket;
 }
 
 UxInt32 User::GetId() const

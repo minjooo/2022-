@@ -8,7 +8,7 @@ class User
 {
 public:
 	User() = default;
-	User( UxInt32 id, SOCKET socket );
+	User( UxInt32 id );
 	~User();
 
 public:
@@ -17,6 +17,9 @@ public:
 public:
 	UxVoid		SetAddr( const IN_ADDR& addr, const USHORT& port );
 	UxString	GetAddr();
+
+	UxVoid		SetSocket( const SOCKET& sock );
+	SOCKET		GetSocket();
 
 	UxInt32		GetId() const;
 	UxVoid		SetId( UxInt32 id );
@@ -51,7 +54,7 @@ protected:
 	UxString	m_name;
 	UxBool		m_isAccess;
 
-	//SOCKET		m_socket;
+	SOCKET		m_socket;
 	UxString	m_command;
 
 	UxBool		m_isInRoom;

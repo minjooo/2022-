@@ -6,7 +6,6 @@
 #include "Room.h"
 
 
-SOCKET g_sockets[WSA_MAXIMUM_WAIT_EVENTS];
 WSAEVENT g_events[WSA_MAXIMUM_WAIT_EVENTS];
 UxInt32 g_counter { 1 };
 
@@ -48,7 +47,7 @@ UxBool FindUserWithName( const UxString& name )
 
 UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 {
-	send( g_sockets[id], buff, strlen(buff), 0 );
+	send( g_users[id].GetSocket(), buff, strlen(buff), 0 );
 }
 
 UxVoid SendChat( UxInt32 id, UxInt32 to )
@@ -271,9 +270,8 @@ UxVoid UserQuit( UxInt32 id )
 {
 	std::cout << g_users[id].GetAddr() << " leave" << std::endl;
 
-	closesocket( g_sockets[id] );
+	closesocket( g_users[id].GetSocket() );
 	WSACloseEvent( g_events[id] );
-	g_sockets[id] = g_sockets[g_counter - 1];
 	g_events[id] = g_events[g_counter - 1];
 	g_users[id] = g_users[g_counter - 1];
 	g_users[id].SetId( id );
@@ -476,7 +474,7 @@ UxVoid main()
 	WSAEventSelect( listener, listenEvent, FD_ACCEPT );
 
 	g_events[0] = listenEvent;
-	g_sockets[0] = listener;
+	g_users[0].SetSocket( listener );
 
 	while ( true ) 
 	{
@@ -487,7 +485,7 @@ UxVoid main()
 		UxInt32 idx = res - WSA_WAIT_EVENT_0;
 
 		WSANETWORKEVENTS networkEvents;
-		if ( WSAEnumNetworkEvents( g_sockets[idx], g_events[idx], &networkEvents ) == SOCKET_ERROR )
+		if ( WSAEnumNetworkEvents( g_users[idx].GetSocket(), g_events[idx], &networkEvents ) == SOCKET_ERROR )
 		{
 			std::cout << "error" << std::endl;
 			break;
@@ -497,15 +495,16 @@ UxVoid main()
 		{
 			sockaddr_in address;
 			UxInt32 size = sizeof( address );
-			SOCKET client = accept( g_sockets[idx], ( sockaddr* )&address, &size );
+			SOCKET client = accept( g_users[idx].GetSocket(), ( sockaddr* )&address, &size );
+			g_users[g_counter] = User( g_counter );
+			g_users[g_counter].SetSocket( client );
+			g_users[g_counter].SetAddr( address.sin_addr, address.sin_port );
+
 
 			WSAEVENT cEvt = WSACreateEvent();
 			WSAEventSelect( client, cEvt, FD_READ | FD_CLOSE );
-
-			g_sockets[g_counter] = client;
-			g_users[g_counter] = User( g_counter, client );
-			g_users[g_counter].SetAddr( address.sin_addr, address.sin_port );
 			g_events[g_counter] = cEvt;
+
 			std::cout << g_users[g_counter].GetAddr() << " access" << std::endl;
 			SendLoginMention( g_counter );
 			g_counter++;
@@ -514,7 +513,7 @@ UxVoid main()
 		if ( networkEvents.lNetworkEvents & FD_READ ) 
 		{
 			UxInt8 buffer[max_buffer];
-			UxInt32 readBytes = recv( g_sockets[idx], buffer, max_buffer, 0 );
+			UxInt32 readBytes = recv( g_users[idx].GetSocket(), buffer, max_buffer, 0 );
 			buffer[readBytes] = '\0';
 			PacketHandler( idx, buffer );
 		}
