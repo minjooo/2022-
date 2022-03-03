@@ -40,5 +40,6 @@ enum class EInvalidEvent
 	NotExistUser,
 	NotExistRoom,
 	RoomFull,
-	NotFullCommand
+	NotFullCommand,
+	NotExistCommand
 };

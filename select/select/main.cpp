@@ -95,6 +95,8 @@ UxVoid SendInvalid( UxInt32 id, EInvalidEvent e )
 	case EInvalidEvent::NotFullCommand:
 		SendPacket( id, Message::notFullCommand.c_str() );
 		break;
+	case EInvalidEvent::NotExistCommand:
+		SendPacket( id, Message::notExistCommand.c_str() );
 	default:
 		break;
 	}
@@ -209,7 +211,7 @@ UxVoid SendRoomInfo( UxInt32 id )
 
 	for ( auto&& userId : g_rooms[num].GetUsers() )
 	{
-		str += ( "참여자 : " + g_users[userId].GetName() + "생성시간 : " + g_users[userId].GetRoomJoinTime() + "\r\n" );
+		str += ( "참여자 : " + g_users[userId].GetName() + "	참여시간 : " + g_users[userId].GetRoomJoinTime() + "\r\n" );
 	}
 	str += "---------------------------------------------------------------\r\n";
 
@@ -262,7 +264,7 @@ UxVoid BroadcastRoom( UxInt32 id , ERoomEvent e, UxInt32 roomNum)
 	switch ( e )
 	{
 	case ERoomEvent::Join:
-		str += g_users[id].GetName() + "님이 채팅방에 참여했습니다.\r\n도움말은 /h입력\r\n";
+		str += g_users[id].GetName() + "님이 채팅방에 참여했습니다...도움말은 /h입력\r\n";
 		break;
 	case ERoomEvent::Leave:
 		str += g_users[id].GetName() + "님이 채팅방을 나갔습니다.\r\n";
@@ -442,6 +444,10 @@ UxVoid CommandHandler( UxInt32 id )
 		else if ( "X" == command || "/X" == command )
 		{
 			CleanUp( id );
+		}
+		else if( !g_users[id].IsInRoom() )
+		{
+			SendInvalid( id, EInvalidEvent::NotExistCommand );
 		}
 
 		if ( !g_users[id].IsInRoom() )

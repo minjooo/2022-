@@ -57,13 +57,15 @@ namespace Message
 
 	const UxString invite = "** 초대 요청을 했습니다.\r\n";
 
-	const UxString alreadyExistName = "이미 존재하는 아이디입니다.\r\n";
+	const UxString alreadyExistName = "** 이미 존재하는 아이디입니다.\r\n";
 
-	const UxString notExistUser = "존재하지 않는 아이디입니다.\r\n";
+	const UxString notExistUser = "** 존재하지 않는 아이디입니다.\r\n";
 
-	const UxString notExistRoom = "존재하지 않는 방입니다.\r\n";
+	const UxString notExistRoom = "** 존재하지 않는 방입니다.\r\n";
 
-	const UxString roomFull = "방이 가득찼습니다.\r\n";
+	const UxString roomFull = "** 방이 가득찼습니다.\r\n";
 
-	const UxString notFullCommand = "커멘드를 다시 확인해주세요.\r\n";
+	const UxString notFullCommand = "** 커멘드를 다시 확인해주세요.\r\n";
+
+	const UxString notExistCommand = "** 존재하지 않는 커멘트입니다.\r\n";
 }
