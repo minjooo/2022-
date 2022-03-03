@@ -5,7 +5,7 @@
 
 
 constexpr UxInt32 max_buffer = 1024;
-#define SERVER_PORT 3500
+constexpr UxInt16 server_port = 3500;
 
 namespace Message
 {

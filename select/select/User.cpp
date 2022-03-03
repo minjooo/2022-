@@ -18,11 +18,6 @@ User::~User()
 
 }
 
-UxVoid User::Initialize()
-{
-
-}
-
 UxVoid User::SetAddr( const IN_ADDR& addr, const USHORT& port )
 {
 	UxInt8 c[INET_ADDRSTRLEN];

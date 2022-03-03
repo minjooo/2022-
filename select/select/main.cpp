@@ -13,7 +13,7 @@ std::map<UxInt32, User>		g_users;
 std::map<UxInt32, Room>		g_rooms;
 UxInt32						g_roomCounter { 0 };
 
-
+//커멘드의 다음 단어 가져오는 함수 (없으면 ""리턴)
 UxString GetNextCommand( UxInt32 id )
 {
 	g_users[id].EraseFirstCommand();
@@ -45,11 +45,13 @@ UxBool FindUserWithName( const UxString& name )
 	return false;
 }
 
+//send
 UxVoid SendPacket( UxInt32 id, const UxInt8* buff )
 {
 	send( g_users[id].GetSocket(), buff, strlen(buff), 0 );
 }
 
+//쪽지보내기
 UxVoid SendChat( UxInt32 id, UxInt32 to )
 {
 	g_users[id].EraseFirstCommand();
@@ -57,6 +59,7 @@ UxVoid SendChat( UxInt32 id, UxInt32 to )
 	SendPacket( to, str.c_str() );
 }
 
+//채팅방에서의 채팅
 UxVoid SendRoomChat( UxInt32 id )
 {
 	UxString str = g_users[id].GetName() + "> " + g_users[id].GetCommand() + "\r\n";
@@ -258,6 +261,7 @@ UxVoid BrodcastRoom( UxInt32 id , ERoomEvent e, UxInt32 roomNum)
 		SendPacket( userId, str.c_str() );
 }
 
+//클라이언트 종료 처리
 UxVoid UserQuit( UxInt32 id )
 {
 	std::cout << g_users[id].GetAddr() << " leave" << std::endl;
@@ -275,6 +279,7 @@ UxVoid UserQuit( UxInt32 id )
 	--g_counter;
 }
 
+//x입력시 종료전 user처리
 UxVoid CleanUp( UxInt32 id )
 {
 	if ( g_users[id].IsInRoom() )
@@ -426,8 +431,7 @@ UxVoid CommandHandler( UxInt32 id )
 			{
 				SendLoginMention( id );
 			}
-
-			if ( FindUserWithName( name ) )
+			else if ( FindUserWithName( name ) )
 			{
 				SendInvalid( id, EInvalidEvent::AlreadyExistName );
 				SendLoginMention( id );
@@ -465,25 +469,43 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 		}
 		g_users[id].ClearCommand();
 	}
+	//backspace
 	else if ( '/b' == buff[0] )
 	{
 		g_users[id].AddBackspace();
 	}
+	//user의 command에 쌓아두기
 	else
 	{
 		g_users[id].AddCommand( buff );
 	}
 }
 
-UxVoid main() 
+UxInt32 main( UxInt32 argc, UxInt8* argv[] ) 
 {
+	UxInt16 inputPort { 0 };
+	UxBool	inputPortFlag { false };
+	if ( argc > 1 )
+	{
+		inputPort = (UxInt16)( atoi( argv[1] ) );
+		inputPortFlag = true;
+	}
+
 	WSADATA wsa;
 	WSAStartup( MAKEWORD( 2, 2 ), &wsa );
 
 	SOCKET listener = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 	sockaddr_in address;
 	address.sin_family = AF_INET;
-	address.sin_port = htons( SERVER_PORT );
+	if ( inputPortFlag )
+	{
+		address.sin_port = htons( inputPort );
+	}
+	else
+	{
+		std::cout << "기본 포트로 진행됩니다	" << server_port << std::endl;
+		address.sin_port = htons( server_port );
+	}
 	address.sin_addr.s_addr = htonl( INADDR_ANY );
 	bind( listener, ( sockaddr* )&address, sizeof( sockaddr_in ) );
 	listen( listener, SOMAXCONN );
@@ -494,6 +516,7 @@ UxVoid main()
 	g_events[0] = listenEvent;
 	g_users[0].SetSocket( listener );
 
+	std::cout << "Running..." << std::endl;
 	while ( true ) 
 	{
 		DWORD res = WSAWaitForMultipleEvents( g_counter, g_events, FALSE, WSA_INFINITE, TRUE );

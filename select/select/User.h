@@ -12,9 +12,6 @@ public:
 	~User();
 
 public:
-	UxVoid		Initialize();
-
-public:
 	UxVoid		SetAddr( const IN_ADDR& addr, const USHORT& port );
 	UxString	GetAddr();
 
