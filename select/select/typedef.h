@@ -28,9 +28,6 @@ using UxBool	= bool;
 using UxChar	= wchar_t;
 using UxString	= std::string;
 
-constexpr UxInt32 max_buffer = 1024;
-#define SERVER_PORT 3500
-
 enum class ERoomEvent
 {
 	Join,
@@ -42,5 +39,6 @@ enum class EInvalidEvent
 	AlreadyExistName,
 	NotExistUser,
 	NotExistRoom,
-	RoomFull
+	RoomFull,
+	NotFullCommand
 };
