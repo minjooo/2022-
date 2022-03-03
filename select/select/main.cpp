@@ -439,7 +439,7 @@ UxVoid CommandHandler( UxInt32 id )
 			}
 		}
 		//³¡³»±â
-		else if ( "X" == command )
+		else if ( "X" == command || "/X" == command )
 		{
 			CleanUp( id );
 		}
@@ -496,7 +496,7 @@ UxVoid PacketHandler( UxInt32 id, UxInt8* buff )
 		g_users[id].ClearCommand();
 	}
 	//backspace
-	else if ( '/b' == buff[0] )
+	else if ( '\b' == buff[0] )
 	{
 		g_users[id].AddBackspace();
 	}
