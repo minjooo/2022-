@@ -102,7 +102,7 @@ UxVoid Select::Run()
 			UxInt8 buffer[max_buffer];
 			UxInt32 readBytes = recv(m_users[idx].GetSocket(), buffer, max_buffer, 0);
 			buffer[readBytes] = '\0';
-			PacketHandler(idx, buffer);
+			PacketHandler(idx, buffer, readBytes);
 		}
 
 		if (networkEvents.lNetworkEvents & FD_CLOSE)
@@ -133,7 +133,14 @@ UxVoid Select::Run()
 UxString Select::GetNextCommand(UxInt32 id)
 {
 	m_users[id].EraseFirstCommand();
-	return m_users[id].GetCommand().substr(0, m_users[id].GetCommand().find(" "));
+	UxString str = m_users[id].GetCommand().substr(0, m_users[id].GetCommand().find(" "));
+	return str.substr(0, str.find("\r"));
+}
+
+UxString Select::GetPureCommand(const UxString& com)
+{
+	UxString str = com;
+	return str.substr(0, str.find("\r"));
 }
 
 UxBool Select::FindUserWithName(const UxString& name, User* user)
@@ -433,6 +440,7 @@ UxVoid Select::CleanUp(UxInt32 id)
 UxVoid Select::CommandHandler(UxInt32 id)
 {
 	UxString command = m_users[id].GetCommand().substr(0, m_users[id].GetCommand().find(" "));
+	command = GetPureCommand(command);
 	std::transform(command.cbegin(), command.cend(), command.begin(), std::toupper);
 
 	//after login
@@ -600,10 +608,26 @@ UxVoid Select::CommandHandler(UxInt32 id)
 	}
 }
 
-UxVoid Select::PacketHandler(UxInt32 id, UxInt8* buff)
+UxVoid Select::PacketHandler(UxInt32 id, UxInt8* buff, UxInt32 readBytes)
 {
-	//enter
-	if ('\r' == buff[0])
+	if (m_users[id].AddCommand(buff))
+	{
+		std::cout << m_users[id].GetAddr() << " [" << m_users[id].GetName() << "] " << m_users[id].GetCommand();
+
+		if (m_users[id].IsInRoom() && '/' != m_users[id].GetCommand()[0])
+		{
+			SendRoomChat(id);
+		}
+		else
+		{
+			CommandHandler(id);
+		}
+		m_users[id].ClearCommand();
+	}
+
+	////////////////////////
+	/*enter
+	if ('\n' == buff[readBytes - 1])
 	{
 		std::cout << m_users[id].GetAddr() << " [" << m_users[id].GetName() << "] " << m_users[id].GetCommand() << std::endl;
 
@@ -618,8 +642,9 @@ UxVoid Select::PacketHandler(UxInt32 id, UxInt8* buff)
 		m_users[id].ClearCommand();
 	}
 	//backspace
-	else if ('\b' == buff[0])
+	else if ('\b' == buff[readBytes - 1])
 	{
+		std::cout << "backspace" << std::endl;
 		m_users[id].AddBackspace();
 	}
 	//user의 command에 쌓아두기
@@ -627,4 +652,5 @@ UxVoid Select::PacketHandler(UxInt32 id, UxInt8* buff)
 	{
 		m_users[id].AddCommand(buff);
 	}
+	*/
 }

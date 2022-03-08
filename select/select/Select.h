@@ -21,6 +21,7 @@ public:
 
 public:
 	UxString GetNextCommand(UxInt32 id);
+	UxString GetPureCommand(const UxString& com);
 	UxBool FindUserWithName(const UxString& name, User* user);
 	UxBool FindUserWithName(const UxString& name);
 	UxBool IsNumber(const UxString& str);
@@ -48,7 +49,7 @@ public:
 	UxVoid CleanUp(UxInt32 id);
 
 	UxVoid CommandHandler(UxInt32 id);
-	UxVoid PacketHandler(UxInt32 id, UxInt8* buff);
+	UxVoid PacketHandler(UxInt32 id, UxInt8* buff, UxInt32 readBytes);
 
 protected:
 
@@ -59,6 +60,7 @@ protected:
 	UxInt32 m_counter{ 1 };
 
 	std::map<UxInt32, User>		m_users;
+
 	std::map<UxInt32, Room>		m_rooms;
 	UxInt32						m_roomCounter{ 0 };
 };

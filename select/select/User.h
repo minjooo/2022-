@@ -28,8 +28,7 @@ public:
 	UxVoid		SetAccess();
 	UxVoid		SetAccessCancle();
 
-	UxVoid		AddCommand( UxString add );
-	UxVoid		AddCommand( UxInt8* add );
+	UxBool		AddCommand( UxInt8* add );
 	UxVoid		AddBackspace();
 	UxVoid		EraseFirstCommand();
 	UxVoid		ClearCommand();

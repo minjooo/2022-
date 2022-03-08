@@ -78,14 +78,15 @@ UxVoid User::SetAccessCancle()
 	m_isAccess = false;
 }
 
-UxVoid User::AddCommand( UxString add )
+UxBool User::AddCommand( UxInt8* add )
 {
+	//backspace처리 필요
 	m_command += add;
-}
-
-UxVoid User::AddCommand( UxInt8* add )
-{
-	m_command += add;
+	if (m_command.end() != std::find(m_command.begin(), m_command.end(), '\r'))
+	{
+		return true;
+	}
+	return false;
 }
 
 UxVoid User::AddBackspace()
@@ -104,7 +105,11 @@ UxVoid User::EraseFirstCommand()
 
 UxVoid User::ClearCommand()
 {
-	m_command.clear();
+	auto iter = std::find(m_command.begin(), m_command.end(), '\n');
+	if (iter + 1 == m_command.end())
+		m_command.clear();
+	else
+		m_command = m_command.substr(m_command.find('\n'), m_command.length() - 1);
 }
 
 UxString User::GetCommand()
