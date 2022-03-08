@@ -144,6 +144,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="const.h" />
+    <ClInclude Include="RoomManager.h" />
+    <ClInclude Include="Select.h" />
     <ClInclude Include="typedef.h" />
     <ClInclude Include="Room.h" />
     <ClInclude Include="User.h" />
@@ -151,6 +153,8 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Room.cpp" />
+    <ClCompile Include="RoomManager.cpp" />
+    <ClCompile Include="Select.cpp" />
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
