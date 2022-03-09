@@ -106,6 +106,7 @@ UxVoid User::EraseFirstCommand()
 UxVoid User::ClearCommand()
 {
 	auto iter = std::find(m_command.begin(), m_command.end(), '\n');
+	if (iter == m_command.end()) return;
 	if (iter + 1 == m_command.end())
 		m_command.clear();
 	else

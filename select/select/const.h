@@ -10,17 +10,15 @@ constexpr UxInt16 server_port = 3500;
 namespace Message
 {
 	const UxString basic =
-		"명령어안내(H) 종료(X)\r\n"
-		"선택>  ";
+		"명령어안내(H) 종료(X)\r\n";
 
 	const UxString login =
 		"** 로그인 명령어(LOGIN [ID])을 사용해주세요\r\n";
 
 	const UxString welcome =
 		"---------------------------------------------------------------\r\n"
-		"반갑습니다. 텍스트 채팅서버 ver0.1입니다.\r\n\r\n"
-		"이용중 불편하신 점이 있으면 아래 이메일로 문의 바랍니다\r\n"
-		"감사합니다\r\n\r\n"
+		"반갑습니다. 텍스트 채팅서버 ver0.1입니다.\r\n"
+		"감사합니다\r\n"
 		"---------------------------------------------------------------\r\n";
 
 	const UxString bye =

@@ -100,7 +100,7 @@ UxVoid Select::Run()
 		if (networkEvents.lNetworkEvents & FD_READ)
 		{
 			UxInt8 buffer[max_buffer];
-			UxInt32 readBytes = recv(m_users[idx].GetSocket(), buffer, max_buffer, 0);
+			UxInt32 readBytes = recv(m_users[idx].GetSocket(), buffer, max_buffer - 1, 0);
 			buffer[readBytes] = '\0';
 			PacketHandler(idx, buffer, readBytes);
 		}
@@ -569,6 +569,10 @@ UxVoid Select::CommandHandler(UxInt32 id)
 		{
 			CleanUp(id);
 		}
+		else if ("XX" == command || "/XX" == command)
+		{
+			UserQuit(id);
+		}
 		else if (!m_users[id].IsInRoom())
 		{
 			SendInvalid(id, EInvalidEvent::NotExistCommand);
@@ -610,6 +614,10 @@ UxVoid Select::CommandHandler(UxInt32 id)
 
 UxVoid Select::PacketHandler(UxInt32 id, UxInt8* buff, UxInt32 readBytes)
 {
+	if (readBytes == 0)
+	{
+		std::cout << "client gone!!!!!!!!!!" << std::endl;
+	}
 	if (m_users[id].AddCommand(buff))
 	{
 		std::cout << m_users[id].GetAddr() << " [" << m_users[id].GetName() << "] " << m_users[id].GetCommand();
