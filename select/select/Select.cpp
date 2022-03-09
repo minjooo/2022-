@@ -256,9 +256,9 @@ UxVoid Select::SendInstruction(UxInt32 id)
 UxVoid Select::SendAllUserList(UxInt32 id)
 {
 	UxString str = "------------------------- 사람들 목록 -------------------------\r\n";
-	for (auto&& user : m_users)
+	for (int i = 1; i < m_counter; ++i)
 	{
-		str += ("[" + user.second.GetName() + "]		" + user.second.GetAddr() + "\r\n");
+		str += ("[" + m_users[i].GetName() + "]		" + m_users[i].GetAddr() + "\r\n");
 	}
 	str += "---------------------------------------------------------------\r\n";
 
