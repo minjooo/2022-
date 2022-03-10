@@ -26,7 +26,7 @@ public:
 	UxBool FindUserWithName(const UxString& name);
 	UxBool IsNumber(const UxString& str);
 
-	UxVoid SendPacket(UxInt32 id, const UxInt8* buff);
+	UxVoid SendPacket(UxInt32 id, const UxString& buff);
 
 	UxVoid SendChat(UxInt32 id, UxInt32 to);
 	UxVoid SendRoomChat(UxInt32 id);

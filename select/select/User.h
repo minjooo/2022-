@@ -43,6 +43,9 @@ public:
 public:
 	UxBool		operator==( User& user );
 
+public:
+	UxString	m_sendBuff;
+
 protected:
 	UxString	m_addr;
 

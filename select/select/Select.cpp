@@ -176,9 +176,17 @@ UxBool Select::IsNumber(const UxString& str)
 }
 
 //send
-UxVoid Select::SendPacket(UxInt32 id, const UxInt8* buff)
+UxVoid Select::SendPacket(UxInt32 id, const UxString& buff)
 {
-	send(m_users[id].GetSocket(), buff, strlen(buff), 0);
+	m_users[id].m_sendBuff += buff;
+
+	UxInt32 res = send(m_users[id].GetSocket(), m_users[id].m_sendBuff.c_str(), m_users[id].m_sendBuff.length(), 0);
+
+	//다 안보내짐 처리
+	if (res != m_users[id].m_sendBuff.length())
+		m_users[id].m_sendBuff = m_users[id].m_sendBuff.substr(res, m_users[id].m_sendBuff.length() - 1);
+	else
+		m_users[id].m_sendBuff.clear();
 }
 
 //쪽지보내기
@@ -186,7 +194,7 @@ UxVoid Select::SendChat(UxInt32 id, UxInt32 to)
 {
 	m_users[id].EraseFirstCommand();
 	UxString str = "[" + m_users[id].GetName() + "]	" + m_users[id].GetCommand() + "\r\n";
-	SendPacket(to, str.c_str());
+	SendPacket(to, str);
 }
 
 //채팅방에서의 채팅
@@ -195,7 +203,7 @@ UxVoid Select::SendRoomChat(UxInt32 id)
 	UxString str = m_users[id].GetName() + "> " + m_users[id].GetCommand() + "\r\n";
 	for (auto&& userId : m_rooms[m_users[id].GetRoomNum()].GetUsers())
 	{
-		SendPacket(userId, str.c_str());
+		SendPacket(userId, str);
 	}
 }
 
@@ -204,22 +212,22 @@ UxVoid Select::SendInvalid(UxInt32 id, EInvalidEvent e)
 	switch (e)
 	{
 	case EInvalidEvent::AlreadyExistName:
-		SendPacket(id, Message::alreadyExistName.c_str());
+		SendPacket(id, Message::alreadyExistName);
 		break;
 	case EInvalidEvent::NotExistUser:
-		SendPacket(id, Message::notExistUser.c_str());
+		SendPacket(id, Message::notExistUser);
 		break;
 	case EInvalidEvent::NotExistRoom:
-		SendPacket(id, Message::notExistRoom.c_str());
+		SendPacket(id, Message::notExistRoom);
 		break;
 	case EInvalidEvent::RoomFull:
-		SendPacket(id, Message::roomFull.c_str());
+		SendPacket(id, Message::roomFull);
 		break;
 	case EInvalidEvent::NotFullCommand:
-		SendPacket(id, Message::notFullCommand.c_str());
+		SendPacket(id, Message::notFullCommand);
 		break;
 	case EInvalidEvent::NotExistCommand:
-		SendPacket(id, Message::notExistCommand.c_str());
+		SendPacket(id, Message::notExistCommand);
 	default:
 		break;
 	}
@@ -227,30 +235,30 @@ UxVoid Select::SendInvalid(UxInt32 id, EInvalidEvent e)
 
 UxVoid Select::SendBasicMention(UxInt32 id)
 {
-	SendPacket(id, Message::basic.c_str());
+	SendPacket(id, Message::basic);
 }
 
 UxVoid Select::SendLoginMention(UxInt32 id)
 {
-	SendPacket(id, Message::login.c_str());
+	SendPacket(id, Message::login);
 }
 
 UxVoid Select::SendWelcome(UxInt32 id)
 {
-	SendPacket(id, Message::welcome.c_str());
+	SendPacket(id, Message::welcome);
 }
 
 UxVoid Select::SendBye(UxInt32 id)
 {
-	SendPacket(id, Message::bye.c_str());
+	SendPacket(id, Message::bye);
 }
 
 UxVoid Select::SendInstruction(UxInt32 id)
 {
 	if (m_users[id].IsInRoom())
-		SendPacket(id, Message::helpRoom.c_str());
+		SendPacket(id, Message::helpRoom);
 	else
-		SendPacket(id, Message::helpLobby.c_str());
+		SendPacket(id, Message::helpLobby);
 }
 
 UxVoid Select::SendAllUserList(UxInt32 id)
@@ -262,7 +270,7 @@ UxVoid Select::SendAllUserList(UxInt32 id)
 	}
 	str += "---------------------------------------------------------------\r\n";
 
-	SendPacket(id, str.c_str());
+	SendPacket(id, str);
 }
 
 UxVoid Select::SendRoomList(UxInt32 id)
@@ -270,11 +278,11 @@ UxVoid Select::SendRoomList(UxInt32 id)
 	UxString str = "------------------------- 대화방 목록 -------------------------\r\n";
 	for (auto&& room : m_rooms)
 	{
-		str += ("[" + std::to_string(room.second.GetRoomNum()) + "]	" + room.second.GetCurrentNum() + "	" + room.second.GetName() + "\r\n");
+		str += ("[" + std::to_string(room.second.GetRoomNum()) + "] " + room.second.GetCurrentNum() + "	" + room.second.GetName() + "\r\n");
 	}
 	str += "---------------------------------------------------------------\r\n";
 
-	SendPacket(id, str.c_str());
+	SendPacket(id, str);
 }
 
 UxVoid Select::SendUserProfile(UxInt32 id)
@@ -303,7 +311,7 @@ UxVoid Select::SendUserProfile(UxInt32 id)
 	}
 	str += "** 접속지 : " + user.GetAddr() + "\r\n";
 
-	SendPacket(id, str.c_str());
+	SendPacket(id, str);
 }
 
 UxVoid Select::SendRoomInfo(UxInt32 id)
@@ -338,7 +346,7 @@ UxVoid Select::SendRoomInfo(UxInt32 id)
 	}
 	str += "---------------------------------------------------------------\r\n";
 
-	SendPacket(id, str.c_str());
+	SendPacket(id, str);
 }
 
 UxInt32 Select::SendOpenRoom(UxInt32 id)
@@ -357,7 +365,7 @@ UxInt32 Select::SendOpenRoom(UxInt32 id)
 	m_rooms.insert(std::make_pair(roomNum, room));
 
 	UxString str = name + "방이 개설되었습니다\r\n";
-	SendPacket(id, str.c_str());
+	SendPacket(id, str);
 	return roomNum;
 }
 
@@ -376,8 +384,8 @@ UxVoid Select::SendInvite(UxInt32 id)
 		return;
 	}
 	UxString str = "\r\n# " + m_users[id].GetName() + "님이 " + std::to_string(m_users[id].GetRoomNum()) + "번 방에서 초대 요청을 했습니다.\r\n";
-	SendPacket(user.GetId(), str.c_str());
-	SendPacket(id, Message::invite.c_str());
+	SendPacket(user.GetId(), str);
+	SendPacket(id, Message::invite);
 }
 
 UxVoid Select::BroadcastRoom(UxInt32 id, ERoomEvent e, UxInt32 roomNum)
@@ -397,7 +405,7 @@ UxVoid Select::BroadcastRoom(UxInt32 id, ERoomEvent e, UxInt32 roomNum)
 	}
 
 	for (auto&& userId : m_rooms[roomNum].GetUsers())
-		SendPacket(userId, str.c_str());
+		SendPacket(userId, str);
 }
 
 //클라이언트 종료 처리
@@ -571,7 +579,7 @@ UxVoid Select::CommandHandler(UxInt32 id)
 		}
 		else if ("XX" == command || "/XX" == command)
 		{
-			UserQuit(id);
+			CleanUp(id);
 		}
 		else if (!m_users[id].IsInRoom())
 		{
