@@ -181,9 +181,10 @@ UxVoid Select::SendPacket(UxInt32 id, const UxString& buff)
 	m_users[id].m_sendBuff += buff;
 
 	UxInt32 res = send(m_users[id].GetSocket(), m_users[id].m_sendBuff.c_str(), m_users[id].m_sendBuff.length(), 0);
-
+	if (res == -1)
+		std::cout << "client leave" << std::endl;
 	//다 안보내짐 처리
-	if (res != m_users[id].m_sendBuff.length())
+	else if (res != m_users[id].m_sendBuff.length())
 		m_users[id].m_sendBuff = m_users[id].m_sendBuff.substr(res, m_users[id].m_sendBuff.length() - 1);
 	else
 		m_users[id].m_sendBuff.clear();
@@ -395,7 +396,7 @@ UxVoid Select::BroadcastRoom(UxInt32 id, ERoomEvent e, UxInt32 roomNum)
 	switch (e)
 	{
 	case ERoomEvent::Join:
-		str += m_users[id].GetName() + "님이 채팅방에 참여했습니다...도움말은 /h입력\r\n";
+		str += m_users[id].GetName() + "님이 채팅방에 참여했습니다.\r\n";
 		break;
 	case ERoomEvent::Leave:
 		str += m_users[id].GetName() + "님이 채팅방을 나갔습니다.\r\n";
@@ -422,6 +423,7 @@ UxVoid Select::UserQuit(UxInt32 id)
 	{
 		m_rooms[m_users[id].GetRoomNum()].ChangeUserId(m_counter - 1, id);
 	}
+	m_users[id].LeaveRoom();
 	m_users.erase(m_counter - 1);
 	--m_counter;
 }
@@ -624,7 +626,7 @@ UxVoid Select::PacketHandler(UxInt32 id, UxInt8* buff, UxInt32 readBytes)
 {
 	if (readBytes == 0)
 	{
-		std::cout << "client gone!!!!!!!!!!" << std::endl;
+		std::cout << "client leave" << std::endl;
 	}
 	if (m_users[id].AddCommand(buff))
 	{
@@ -640,33 +642,4 @@ UxVoid Select::PacketHandler(UxInt32 id, UxInt8* buff, UxInt32 readBytes)
 		}
 		m_users[id].ClearCommand();
 	}
-
-	////////////////////////
-	/*enter
-	if ('\n' == buff[readBytes - 1])
-	{
-		std::cout << m_users[id].GetAddr() << " [" << m_users[id].GetName() << "] " << m_users[id].GetCommand() << std::endl;
-
-		if (m_users[id].IsInRoom() && '/' != m_users[id].GetCommand()[0])
-		{
-			SendRoomChat(id);
-		}
-		else
-		{
-			CommandHandler(id);
-		}
-		m_users[id].ClearCommand();
-	}
-	//backspace
-	else if ('\b' == buff[readBytes - 1])
-	{
-		std::cout << "backspace" << std::endl;
-		m_users[id].AddBackspace();
-	}
-	//user의 command에 쌓아두기
-	else
-	{
-		m_users[id].AddCommand(buff);
-	}
-	*/
 }
